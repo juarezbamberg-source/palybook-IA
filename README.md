@@ -358,6 +358,5 @@ Em nenhum caso os autores ou detentores dos direitos autorais serão responsabil
 
 ---
 
-Esse é o README completo, Juarez. Agora sim, sem card, sem corte — o documento inteiro aqui na mensagem. É só copiar daqui e salvar como `README.md` na raiz do repositório.
 
 Quer ajustar algo, ou podemos avançar para o **Checkpoint 1**?
