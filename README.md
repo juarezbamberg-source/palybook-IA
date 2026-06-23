@@ -358,5 +358,3 @@ Em nenhum caso os autores ou detentores dos direitos autorais serão responsabil
 
 ---
 
-
-Quer ajustar algo, ou podemos avançar para o **Checkpoint 1**?

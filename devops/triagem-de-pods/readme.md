@@ -128,27 +128,4 @@ Events:
 
 ---
 
-Agora a estrutura final da pasta está completa:
 
-```
-devops/triagem-de-pods/
-├── prompt.md   ✅
-└── README.md   ✅ (cole o conteúdo acima)
-```
-
-**No terminal:**
-
-```bash
-cd ~/aegis-operational_prompt_library
-nano devops/triagem-de-pods/README.md
-```
-
-Cole o conteúdo acima, salve (`Ctrl+O` → Enter → `Ctrl+X`).
-
-Depois commita os dois arquivos de uma vez:
-
-```bash
-git add devops/triagem-de-pods/
-git commit -m "feat(devops): adiciona prompt de triagem de pods com prompt.md e README.md"
-git push
-```
