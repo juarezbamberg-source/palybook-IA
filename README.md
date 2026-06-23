@@ -1,4 +1,3 @@
-Juarez, agora entendi o problema. As saídas anteriores foram em cards de código que podem ter sido cortados ou de difícil acesso. Vou entregar o **README.md completo** aqui mesmo, na mensagem, sem card.
 
 ---
 
