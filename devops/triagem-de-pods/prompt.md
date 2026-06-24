@@ -78,4 +78,5 @@ ESCALAR: <@time se aplicável>
 ***
 
 Se nenhum pod problemático for detectado, retorne apenas a linha abaixo, sem cabeçalhos adicionais:
+
 Nenhum pod problemático detectado.
