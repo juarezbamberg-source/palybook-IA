@@ -342,5 +342,3 @@ O prompt também usa critérios objetivos para detectar pods problemáticos. Ent
 
 A resposta final deve ser entregue em **Markdown** e seguir um formato obrigatório. Essa padronização melhora a legibilidade, facilita versionamento no repositório e deixa a saída pronta para ser reutilizada em playbooks, runbooks ou documentação operacional [page:1].
 ```
-
-Quer que eu também gere uma segunda versão **mais curta e mais “README de projeto”**, com menos subtítulos e mais direta?
