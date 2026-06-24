@@ -1,6 +1,3 @@
-Arquivo `devops/nota-de-triagem/README.md`:
-
-```markdown
 ---
 nome: "Nota de Triagem Padronizada"
 descricao: "A partir de um alerta cru do Sentinel, produz uma nota de triagem padronizada com 5 campos obrigatórios: ALERTA, IMPACTO, HIPÓTESE INICIAL, AÇÃO IMEDIATA e ESCALAR PARA."

@@ -1,6 +1,24 @@
-Arquivo `devops/causa-raiz/prompt.md`:
+---
+nome: "Análise de Causa-Raiz — Cerebro"
+descricao: "A partir de um pacote de 3 artefatos (configuração, métricas e logs do Elasticsearch), realiza análise de causa-raiz de degradação no sistema de indexação e busca Cerebro."
+versao: "1.0.0"
+tags:
+  - causa-raiz
+  - elasticsearch
+  - observabilidade
+  - sre
+  - aegis
+  - cerebro
+  - incident-response
+inputs:
+  - nome: artefato_config
+    descricao: "Configuração do cluster Elasticsearch do Cerebro (cerebro.yaml): shards, replicas, jvm_heap, refresh_interval, reindex_job schedule e query_cache"
+  - nome: artefato_metricas
+    descricao: "Métricas do Cerebro nas últimas 2 horas (search_p99_ms, indexed_docs_per_s, heap_used_pct, cache_hit_pct) em intervalos de 30min"
+  - nome: artefato_logs
+    descricao: "Logs nativos do Elasticsearch do nó cerebro-node-3 cobrindo a janela do problema (08:00 às 10:00 UTC)"
+---
 
-```markdown
 # Prompt: Análise de Causa-Raiz — Cerebro (Aegis)
 
 Você é um SRE sênior da Aegis especializado em sistemas de indexação e busca. Recebeu um pacote de artefatos sobre uma degradação no Cerebro (motor Elasticsearch). Sua tarefa é realizar uma análise de causa-raiz cruzando as três fontes de dados abaixo.

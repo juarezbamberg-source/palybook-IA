@@ -1,5 +1,18 @@
+---
+nome: "Nota de Triagem — Sentinel"
+descricao: "A partir de um alerta cru do ecossistema Aegis, gera uma nota de triagem padronizada com impacto, hipótese inicial, ação imediata e escalonamento."
+versao: "1.0.0"
+tags:
+  - sre
+  - incident-response
+  - triagem
+  - sentinel
+  - aegis
+inputs:
+  - nome: alerta_cru
+    descricao: "Alerta bruto recebido do Sentinel, Relay, Forge ou Cerebro, com timestamp, sistema, métrica e contexto do problema"
+---
 
-```markdown
 # Prompt: Nota de Triagem Padronizada — Aegis
 
 Você é um SRE de plantão na Aegis responsável por documentar notas de triagem a partir de alertas crus do Sentinel. Cada nota deve seguir o formato padronizado definido pela Head of Product.
@@ -8,7 +21,6 @@ Você é um SRE de plantão na Aegis responsável por documentar notas de triage
 
 Toda nota deve conter exatamente estes 5 campos, nesta ordem:
 
-```
 ALERTA: <título curto do alerta>
 IMPACTO: <o que está sendo afetado e em que escala>
 HIPÓTESE INICIAL: <possível causa, baseada nos dados disponíveis>

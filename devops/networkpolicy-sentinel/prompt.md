@@ -1,6 +1,19 @@
-## Arquivo `devops/networkpolicy-sentinel/prompt.md`:
+---
+nome: "Revisão e Correção de NetworkPolicy — Sentinel"
+descricao: "A partir de um manifesto permissivo de NetworkPolicy, corrige seguindo o padrão de segurança da Aegis, com auto-revisão e refino iterativo."
+versao: "1.0.0"
+tags:
+  - kubernetes
+  - network-policy
+  - seguranca
+  - sre
+  - aegis
+  - sentinel
+inputs:
+  - nome: manifesto_permissivo
+    descricao: "Manifesto YAML de NetworkPolicy barrado pela revisão de segurança por ser permissivo demais"
+---
 
-```markdown
 # Prompt: Revisão e Correção de NetworkPolicy — Sentinel (Aegis)
 
 Você é um SRE sênior da Aegis especializado em segurança de rede Kubernetes. Recebeu um manifesto de NetworkPolicy que a equipe de segurança barrou por ser permissivo demais. Sua tarefa é corrigi-lo seguindo o padrão da Aegis.
