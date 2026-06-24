@@ -1,0 +1,134 @@
+description: "Testes do prompt Triagem de Pods do Sentinel"
+prompts:
+  - file://prompt.md
+
+providers:
+  - id: openai:gpt-4o-mini
+
+defaultTest:
+  options:
+    provider:
+      temperature: 0
+
+tests:
+  - description: "Detecta CrashLoopBackOff por OOMKilled e recomenda ação concreta"
+    vars:
+      timestamp: "2026-05-13 10:20 UTC"
+      snapshot_pods: |
+        NAME                             READY   STATUS             RESTARTS       AGE
+        sentinel-api-7d9c8b6f4-2xk9p     1/1     Running            0              6d
+        sentinel-api-7d9c8b6f4-h4m2t     0/1     CrashLoopBackOff   14 (90s ago)   42m
+        sentinel-worker-5b8f9c8d-jq7rs   1/1     Running            0              6d
+        sentinel-scheduler-6c4d7f-nn8vx  1/1     Running            0              6d
+      snapshot_events: |
+        Name: sentinel-api-7d9c8b6f4-h4m2t
+        State:          Waiting
+          Reason:       CrashLoopBackOff
+        Last State:     Terminated
+          Reason:       OOMKilled
+          Exit Code:    137
+        Limits:
+          memory: 512Mi
+        Requests:
+          memory: 256Mi
+        Events:
+          Type     Reason   Age                From     Message
+          ----     ------   ----               ----     -------
+          Warning  BackOff  2m (x18 over 40m)  kubelet  Back-off restarting failed container api
+      snapshot_logs: |
+        2026-05-13 10:14:02 [INFO]  [api] startup complete, version 2.9.1
+        2026-05-13 10:14:48 [INFO]  [cache] loading 6h alert cache (heap 410Mi/512Mi)
+        2026-05-13 10:15:10 [WARN]  [runtime] high GC pressure, heap 498Mi/512Mi
+        2026-05-13 10:15:12 [FATAL] [runtime] out of memory, shutting down process
+    assert:
+      - type: icontains
+        value: "triagem"
+      - type: icontains
+        value: "pods problemáticos"
+      - type: icontains
+        value: "sentinel-api-7d9c8b6f4-h4m2t"
+      - type: icontains
+        value: "crashloopbackoff"
+      - type: icontains
+        value: "oomkilled"
+      - type: icontains
+        value: "137"
+      - type: icontains
+        value: "out of memory"
+      - type: icontains
+        value: "memória"
+
+  - description: "Detecta ImagePullBackOff e aponta falha de autenticação no registry"
+    vars:
+      timestamp: "2026-05-13 11:00 UTC"
+      snapshot_pods: |
+        NAME                               READY   STATUS             RESTARTS   AGE
+        sentinel-api-77f4d8d67c-mv2k9      0/1     ImagePullBackOff   0          9m
+        sentinel-worker-5b8f9c8d-jq7rs     1/1     Running            0          6d
+      snapshot_events: |
+        Name: sentinel-api-77f4d8d67c-mv2k9
+        State:          Waiting
+          Reason:       ImagePullBackOff
+        Events:
+          Type     Reason      Age   From     Message
+          ----     ------      ----  ----     -------
+          Warning  Failed      3m    kubelet  Failed to pull image "registry.aegis.local/sentinel/api:2.9.2": unauthorized: authentication required
+          Warning  BackOff     2m    kubelet  Back-off pulling image "registry.aegis.local/sentinel/api:2.9.2"
+      snapshot_logs: |
+        Sem logs disponíveis porque o container não iniciou.
+    assert:
+      - type: contains
+        value: "[POD] sentinel-api-77f4d8d67c-mv2k9"
+      - type: contains
+        value: "ImagePullBackOff"
+      - type: icontains
+        value: "autenticação"
+      - type: icontains
+        value: "registry"
+      - type: icontains
+        value: "secret"
+
+  - description: "Detecta Pending por falta de CPU no cluster"
+    vars:
+      timestamp: "2026-05-13 11:10 UTC"
+      snapshot_pods: |
+        NAME                                READY   STATUS    RESTARTS   AGE
+        sentinel-worker-7f9bb6f5d9-kq2xr    0/1     Pending   0          12m
+        sentinel-api-7d9c8b6f4-2xk9p        1/1     Running   0          6d
+      snapshot_events: |
+        Name: sentinel-worker-7f9bb6f5d9-kq2xr
+        State:          Waiting
+          Reason:       Pending
+        Events:
+          Type     Reason             Age   From               Message
+          ----     ------             ----  ----               -------
+          Warning  FailedScheduling   1m    default-scheduler  0/3 nodes are available: 3 Insufficient cpu.
+      snapshot_logs: |
+        Sem logs disponíveis porque o pod não foi agendado.
+    assert:
+      - type: contains
+        value: "[POD] sentinel-worker-7f9bb6f5d9-kq2xr"
+      - type: contains
+        value: "Pending"
+      - type: icontains
+        value: "Insufficient cpu"
+      - type: icontains
+        value: "falta de recurso"
+      - type: icontains
+        value: "node"
+
+  - description: "Retorna cenário saudável quando não há pods problemáticos"
+    vars:
+      timestamp: "2026-05-13 11:20 UTC"
+      snapshot_pods: |
+        NAME                                READY   STATUS    RESTARTS   AGE
+        sentinel-api-7d9c8b6f4-2xk9p        1/1     Running   0          6d
+        sentinel-api-7d9c8b6f4-z9m1a        1/1     Running   0          6d
+        sentinel-worker-5b8f9c8d-jq7rs      1/1     Running   0          6d
+      snapshot_events: |
+        Nenhum evento relevante.
+      snapshot_logs: |
+        Nenhum log relevante.
+    assert:
+      - type: icontains
+        value: "Nenhum pod problemático detectado."

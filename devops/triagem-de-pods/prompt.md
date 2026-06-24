@@ -1,6 +1,5 @@
----
 
-Arquivo `devops/triagem-de-pods/prompt.md`:
+Arquivo `devops/triagem-de-pods/prompt.md`
 
 ```markdown
 # Prompt: Triagem de Pods — Sentinel (Aegis)

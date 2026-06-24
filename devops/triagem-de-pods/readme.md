@@ -1,4 +1,171 @@
 
+# Triagem de Pods do Sentinel
+
+## Objetivo
+
+Este prompt recebe um snapshot do cluster Kubernetes do Sentinel e produz uma triagem rápida e confiável. Ele identifica pods problemáticos, cruza informações de status, eventos e logs para chegar à causa provável e recomenda a ação do plantão.
+
+## Estrutura da pasta
+
+```text
+devops/triagem-de-pods/
+├── prompt.md
+├── README.md
+└── promptfooconfig.yaml
+```
+
+## Como usar o prompt
+
+O plantonista coleta o snapshot executando os comandos abaixo no cluster:
+
+1. `kubectl get pods -n sentinel-prod`
+2. `kubectl describe pod <pod> -n sentinel-prod`
+3. `kubectl logs <pod> -n sentinel-prod --previous`
+
+Depois, cola as saídas nos placeholders `{{snapshot_pods}}`, `{{snapshot_events}}` e `{{snapshot_logs}}` do prompt.
+
+## O que o prompt faz
+
+O prompt segue três etapas principais:
+
+1. Identifica pods problemáticos com base em `STATUS`, `RESTARTS` e `READY`.
+2. Cruza `snapshot_pods`, `snapshot_events` e `snapshot_logs` para chegar à causa raiz.
+3. Recomenda uma ação imediata e executável pelo plantão.
+
+## Formato esperado da saída
+
+Quando houver problema, a saída deve seguir este padrão:
+
+```text
+## Triagem — {{timestamp}}
+
+### Pods problemáticos: [N]
+
+---
+
+[POD] nome-do-pod
+  STATUS:   <status atual>
+  CAUSA:    <causa raiz com evidência>
+  EVIDÊNCIA:
+    - <ponto do describe>
+    - <trecho do log>
+  AÇÃO:     <próxima ação>
+  ESCALAR:  <@time se aplicável>
+
+---
+```
+
+Se não houver problema:
+
+```text
+Nenhum pod problemático detectado.
+```
+
+## Casos de uso cobertos
+
+| Caso | Descrição |
+|------|-----------|
+| CrashLoopBackOff / OOMKilled | Pod reiniciando por estouro de memória |
+| ImagePullBackOff | Pod que não sobe por falha ao baixar imagem |
+| Pending / Insufficient cpu | Pod que não escala por falta de recursos no cluster |
+| Cenário saudável | Nenhum pod problemático detectado |
+
+## Como o plantão valida este prompt com Promptfoo
+
+Antes de confiar em mudanças neste prompt em produção, o plantonista pode rodar uma bateria rápida de testes automatizados usando o Promptfoo.
+
+### Pré-requisitos
+
+- Node.js instalado.
+- Promptfoo instalado globalmente:
+
+```bash
+npm install -g promptfoo
+```
+
+- Variável de ambiente do provedor configurada.
+
+Exemplo com OpenAI no Linux/macOS:
+
+```bash
+export OPENAI_API_KEY="sua-chave"
+```
+
+Exemplo com OpenAI no PowerShell:
+
+```powershell
+$env:OPENAI_API_KEY="sua-chave"
+```
+
+## Passo a passo para rodar os testes
+
+### 1. Entrar na pasta do prompt
+
+```bash
+cd aegis-operational_prompt_library/devops/triagem-de-pods
+```
+
+### 2. Rodar a suíte de testes
+
+```bash
+promptfoo eval --config promptfooconfig.yaml
+```
+
+### 3. Visualizar os detalhes no navegador
+
+```bash
+promptfoo view
+```
+
+Esse comando sobe uma interface local para inspecionar cada cenário, comparar saída esperada e saída real e identificar rapidamente por que um teste falhou.
+
+## O que o Promptfoo valida nesta pasta
+
+O arquivo `promptfooconfig.yaml` testa atualmente quatro cenários:
+
+1. CrashLoopBackOff com `OOMKilled`.
+2. ImagePullBackOff por falha de autenticação no registry.
+3. Pending por `Insufficient cpu`.
+4. Cenário saudável sem pods problemáticos.
+
+Esses testes garantem que o prompt continua entregando, no mínimo:
+
+- identificação do pod problemático correto;
+- causa provável coerente com as evidências;
+- evidência relevante do describe ou log;
+- ação concreta para o plantão.
+
+## Quando o plantão deve rodar esse teste
+
+- Após editar o `prompt.md`.
+- Após trocar o modelo usado no `promptfooconfig.yaml`.
+- Antes de publicar mudanças no playbook.
+- Como validação rápida quando houver dúvida se o playbook ainda está consistente.
+
+## O que fazer se algum teste falhar
+
+1. Rodar `promptfoo view`.
+2. Abrir o cenário com falha.
+3. Comparar a saída real com o comportamento esperado.
+4. Ajustar o `prompt.md` ou os asserts do `promptfooconfig.yaml`.
+5. Rodar novamente `promptfoo eval --config promptfooconfig.yaml` até todos os testes passarem.
+
+## Exemplo de rotina simples do plantonista
+
+```bash
+cd aegis-operational_prompt_library/devops/triagem-de-pods
+promptfoo eval --config promptfooconfig.yaml
+promptfoo view
+```
+
+## Benefício operacional
+
+Com isso, o prompt deixa de ser só texto e passa a funcionar como ativo versionado e testável. Alterações no playbook podem ser validadas antes de impactar o uso no plantão.
+
+
+
+
+#########################################################################################################
 ---
 
 Arquivo `devops/triagem-de-pods/README.md`:
@@ -129,3 +296,51 @@ Events:
 ---
 
 
+################################################################################################
+TEXTO PARA README MAIS CONCEITGUAL DAS TECNICAS UTILIZADAS
+
+Abaixo está a seção final em **Markdown**, com tom mais prático, mais específico e parágrafos curtos, baseada no prompt do exercício e na forma como ele estrutura a triagem de pods com snapshots, critérios objetivos, correlação de evidências e saída padronizada. [github](https://github.com/juarezbamberg-source/palybook-IA/blob/main/devops/triagem-de-pods/prompt.md)
+
+```markdown
+## Técnicas Utilizadas
+
+Este exercício usa o framework **RISE** para estruturar a triagem de incidentes em Kubernetes. O prompt define claramente o papel do agente, os dados de entrada, a sequência de análise e o formato esperado da resposta. Isso torna a execução mais previsível e útil para um cenário real de plantão [page:1].
+
+### Role
+
+O agente assume o papel de um **SRE sênior de plantão**. Essa definição orienta o modelo a responder com foco em diagnóstico técnico, causa raiz e ação imediata, evitando respostas genéricas ou descritivas demais [page:1].
+
+### Input
+
+A entrada é dividida em três blocos: `snapshot_pods`, `snapshot_events` e `snapshot_logs`. Essa separação força a análise baseada em evidências reais do cluster, usando estado dos pods, eventos do Kubernetes e logs da aplicação de forma complementar [page:1].
+
+### Steps
+
+O prompt organiza a análise em três passos objetivos: identificar pods problemáticos, cruzar eventos e logs e recomendar uma ação concreta. Essa sequência reproduz um fluxo prático de troubleshooting e evita que o modelo conclua o diagnóstico apenas pelo `STATUS` do pod [page:1].
+
+### Expectation
+
+A saída é padronizada com campos como **CAUSA**, **EVIDÊNCIA**, **AÇÃO** e **ESCALAR**. Isso garante que a resposta final já venha pronta para uso operacional, facilitando a leitura no GitHub e a execução rápida pelo time de plantão [page:1].
+
+### Engenharia de Contexto
+
+O exercício também aplica **Engenharia de Contexto**, porque todo o diagnóstico depende dos dados enviados na própria execução. Como o modelo não mantém memória da sessão anterior, os snapshots precisam trazer contexto suficiente para correlacionar sintomas, eventos e logs no mesmo fluxo de análise [page:1].
+
+### Uso de dados externos
+
+As variáveis do prompt representam dados coletados fora do modelo, normalmente com comandos como `kubectl get pods`, `kubectl describe pod` e `kubectl logs`. Na prática, isso aproxima a solução de um padrão de RAG com ferramentas, no qual a resposta é construída sobre dados reais do ambiente [page:1].
+
+### Correlação de evidências
+
+A técnica central da triagem é a **correlação de sinais**. O prompt exige cruzar informações de múltiplas fontes para chegar à causa raiz, como associar `CrashLoopBackOff` com erro de memória, ou `ImagePullBackOff` com falha de credencial no registry [page:1].
+
+### Heurísticas de detecção
+
+O prompt também usa critérios objetivos para detectar pods problemáticos. Entre eles estão `STATUS` diferente de `Running`, `RESTARTS` maior que zero e `READY` abaixo do valor esperado, o que cria uma regra prática e repetível para iniciar a investigação [page:1].
+
+### Estruturação de output
+
+A resposta final deve ser entregue em **Markdown** e seguir um formato obrigatório. Essa padronização melhora a legibilidade, facilita versionamento no repositório e deixa a saída pronta para ser reutilizada em playbooks, runbooks ou documentação operacional [page:1].
+```
+
+Quer que eu também gere uma segunda versão **mais curta e mais “README de projeto”**, com menos subtítulos e mais direta?
