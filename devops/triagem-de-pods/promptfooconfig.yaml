@@ -77,7 +77,7 @@ tests:
       snapshot_logs: |
         Sem logs disponíveis porque o container não iniciou.
     assert:
-      - type: regex
+      - type: contains
         value: "[POD] sentinel-api-77f4d8d67c-mv2k9"
       - type: contains
         value: "ImagePullBackOff"
