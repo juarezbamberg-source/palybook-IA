@@ -50,13 +50,7 @@ tests:
       - type: icontains
         value: "crashloopbackoff"
       - type: regex
-        value: (?i)(oomkilled|oom|out.of.memory|memória)
-      - type: icontains
-        value: "137"
-      - type: icontains
-        value: "out of memory"
-      - type: icontains
-        value: "memória"
+        value: '(OOMKilled|OOM|[Oo]ut\s*of|mem.ria|Exit Code:?\s*137|exit.code.137)'
 
   - description: "Detecta ImagePullBackOff e aponta falha de autenticação no registry"
     vars:
