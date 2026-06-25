@@ -2,7 +2,7 @@
 # Avalia: comparação de estratégias, raciocínio vs. recomendação, restrições do time
 
 prompts:
-  - file://devops/backpressure-relay/prompt.md
+  - file://./prompt.md
 
 providers:
   - openai:gpt-4o-mini
