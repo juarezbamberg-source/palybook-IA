@@ -2,7 +2,7 @@
 # Testes determinísticos: 5 rótulos, handle @palavra, max 8 linhas, latência ≤5s, custo ≤$0.01
 
 prompts:
-  - file://prompt.md
+  - file://./prompt.md
 
 providers:
   - openai:gpt-4o-mini

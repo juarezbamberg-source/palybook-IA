@@ -2,7 +2,7 @@
 # Rubrica: 4 critérios (0-2), corte >= 6, nenhum critério zerado
 
 prompts:
-  - - file://devops/causa-raiz/prompt.md
+  - file://./prompt.md
 
 providers:
   - openai:gpt-4o-mini
