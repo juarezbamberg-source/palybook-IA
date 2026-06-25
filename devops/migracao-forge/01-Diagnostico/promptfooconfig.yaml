@@ -1,0 +1,41 @@
+# promptfooconfig.yaml — Diagnóstico do Forge (Elo 1)
+
+prompts:
+  - file://./prompt.md
+
+providers:
+  - openai:gpt-4o-mini
+
+tests:
+  - description: "Elo 1 — Diagnóstico do estado atual do Forge"
+    vars:
+      estado_atual_forge: |
+        Forge hoje:
+        - ingestão: um job em cron acorda a cada 60min (o "forge-batch-ingest")
+        - transformação: 14 etapas de processamento encadeadas (em Spark), ~40min no total
+        - destino: grava em tabelas no data warehouse, particionadas por hora
+        - ponto frágil: se um lote falha, o próximo acumula o dobro de volume
+        - quem depende do Forge: Sentinel (lê as tabelas agregadas), Cerebro (indexa
+          os eventos transformados) e os relatórios de billing da Pepper (rodam de madrugada)
+      requisitos_migracao: |
+        - consumir do Relay continuamente, processando em pequenos blocos no lugar do lote de 1h
+        - manter quem depende do Forge funcionando durante a transição
+        - nada de virada única (big-bang): a migração tem que ir em passos e poder voltar atrás
+    assert:
+      - type: llm-rubric
+        value: |
+          Avalie o diagnóstico nos 2 critérios abaixo (0-2 cada, total 0-4):
+
+          ## Critério 1 — Precisão do diagnóstico (0-2)
+          Identifica corretamente os pontos frágeis: batch de 1h, acúmulo de falha, dependências?
+          Nota 0: Diagnóstico genérico ou incorreto.
+          Nota 1: Parcialmente correto, omite algum ponto frágil.
+          Nota 2: Diagnóstico completo e preciso.
+
+          ## Critério 2 — Clareza da exposição (0-2)
+          O diagnóstico é estruturado e claro para servir de entrada para o próximo elo?
+          Nota 0: Confuso ou desestruturado.
+          Nota 1: Estruturado mas com lacunas.
+          Nota 2: Clareza total, pronto para o próximo elo.
+
+          Corte: total >= 3. Se total < 3, REPROVADO.

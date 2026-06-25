@@ -1,0 +1,48 @@
+# promptfooconfig.yaml — Backpressure Relay (LLM-as-judge)
+# Avalia: comparação de estratégias, raciocínio vs. recomendação, restrições do time
+
+prompts:
+  - file://./prompt.md
+
+providers:
+  - openai:gpt-4o-mini
+
+tests:
+  - description: "Decisão de backpressure — Relay sobrecarregado"
+    vars:
+      cenario_relay: |
+        Relay (barramento de eventos):
+        - throughput sustentado: 180k msgs/s
+        - pico observado no incidente da semana passada: 320k msgs/s por 25min
+        - retenção atual: 4h
+        - consumidores: Forge (ingestão), Sentinel (alerting em tempo real)
+        
+        Restrições do time:
+        - alerting do Sentinel não pode atrasar mais que 60s (SLA com cliente)
+        - ingestão do Forge pode atrasar até 15min sem violar SLA
+        - orçamento de infra do trimestre já está 8% acima do previsto
+        - perda de telemetry é inaceitável para um produto de observabilidade
+    assert:
+      - type: llm-rubric
+        value: |
+          Avalie a saída nos 3 critérios abaixo (0-2 cada, total 0-6):
+
+          ## Critério 1 — Comparação de estratégias (0-2)
+          A saída compara MÚLTIPLAS estratégias (priorização Sentinel, DLQ, isolamento por tenant, auto-scaling) com prós e contras de cada?
+          Nota 0: Apresenta apenas uma estratégia sem comparar alternativas.
+          Nota 1: Menciona alternativas mas não aprofunda prós e contras.
+          Nota 2: Compara 3+ estratégias com prós, contras e trade-offs explícitos.
+
+          ## Critério 2 — Raciocínio vs. recomendação (0-2)
+          O raciocínio é apresentado ANTES da recomendação, e a recomendação é justificada pelos dados?
+          Nota 0: Recomendação sem raciocínio ou raciocínio solto sem conclusão.
+          Nota 1: Raciocínio presente mas superficial, ou recomendação fracamente justificada.
+          Nota 2: Raciocínio passo a passo que leva a uma recomendação claramente justificada.
+
+          ## Critério 3 — Aderência às restrições (0-2)
+          A recomendação respeita TODAS as restrições (SLA Sentinel 60s, SLA Forge 15min, orçamento 8% acima, sem perda de telemetry)?
+          Nota 0: Ignora uma ou mais restrições.
+          Nota 1: Menciona as restrições mas não as usa na decisão.
+          Nota 2: Cada restrição é explicitamente considerada na recomendação.
+
+          Corte: total >= 4. Se total < 4, REPROVADO.

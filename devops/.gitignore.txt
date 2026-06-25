@@ -1,0 +1,14 @@
+# Dependências
+node_modules/
+
+# Resultados de teste
+resultados/
+
+# Cache do promptfoo
+.promptfoo/
+__pycache__/
+*.pyc
+
+# Sistema
+.DS_Store
+Thumbs.db

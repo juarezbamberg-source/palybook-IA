@@ -1,0 +1,75 @@
+# promptfooconfig.yaml — Nota de Triagem
+# Testes determinísticos: 5 rótulos, handle @palavra, max 8 linhas, latência ≤5s, custo ≤$0.01
+
+prompts:
+  - file://prompt.md
+
+providers:
+  - openai:gpt-4o-mini
+  - perplexity:sonar
+
+tests:
+  ## Teste 1 — Alerta Sentinel (autoscaler max replicas)
+  - vars:
+      alerta_cru: >
+        2026-05-12 14:02:09 UTC [Sentinel] autoscaler hit max replicas (60/60)
+        on sentinel-api, queue depth on Relay growing 2k/min, CPU avg 88%,
+        tenant stark-industries sending 4x baseline volume after onboarding new region
+    assert:
+      - type: contains
+        value: "ALERTA:"
+      - type: contains
+        value: "IMPACTO:"
+      - type: contains
+        value: "HIPÓTESE INICIAL:"
+      - type: contains
+        value: "AÇÃO IMEDIATA:"
+      - type: regex
+        value: 'ESCALAR PARA:.*@\w+'
+      - type: javascript
+        value: "output.split('\\n').length <= 8"
+      - type: latency
+        threshold: 5000
+
+  ## Teste 2 — Alerta Relay (ingest reject rate)
+  - vars:
+      alerta_cru: >
+        2026-05-13 03:11:00 UTC [Relay] ingest reject rate 6% for 8min,
+        tenant wakanda-systems, buffer saturated after deploy 02:55
+    assert:
+      - type: contains
+        value: "ALERTA:"
+      - type: contains
+        value: "IMPACTO:"
+      - type: contains
+        value: "HIPÓTESE INICIAL:"
+      - type: contains
+        value: "AÇÃO IMEDIATA:"
+      - type: regex
+        value: 'ESCALAR PARA:.*@\w+'
+      - type: javascript
+        value: "output.split('\\n').length <= 8"
+      - type: latency
+        threshold: 5000
+
+  ## Teste 3 — Alerta Forge (consumer lag)
+  - vars:
+      alerta_cru: >
+        2026-05-13 11:40:22 UTC [Forge] consumer lag 9min and climbing,
+        batch forge-batch-ingest delayed after previous job failure,
+        downstream Sentinel starting to lag
+    assert:
+      - type: contains
+        value: "ALERTA:"
+      - type: contains
+        value: "IMPACTO:"
+      - type: contains
+        value: "HIPÓTESE INICIAL:"
+      - type: contains
+        value: "AÇÃO IMEDIATA:"
+      - type: regex
+        value: 'ESCALAR PARA:.*@\w+'
+      - type: javascript
+        value: "output.split('\\n').length <= 8"
+      - type: latency
+        threshold: 5000

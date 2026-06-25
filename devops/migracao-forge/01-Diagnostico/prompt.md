@@ -1,81 +1,109 @@
----
-nome: "Diagnóstico do Forge — Estado Atual"
-descricao: "A partir do estado atual do Forge, diagnostica riscos, gargalos e dependências do pipeline batch antes da migração para event-driven."
-versao: "1.0.0"
-tags:
-  - diagnostico
-  - forge
-  - pipeline
-  - batch
-  - aegis
-inputs:
-  - nome: estado_atual_forge
-    descricao: "Descrição do estado atual do Forge: ingestão, transformação, destino, ponto frágil e dependentes"
-  - nome: requisitos_migracao
-    descricao: "Requisitos que a migração precisa garantir: consumo contínuo, compatibilidade com dependentes, rollback a qualquer momento"
----
+# promptfooconfig.yaml — Migração Forge (LLM-as-judge)
+# 3 prompts independentes, cada um com seu próprio test case
 
-# Prompt: Diagnóstico do Forge — Estado Atual (Aegis)
+prompts:
+  - file://prompt.md
+  - file://prompt.md
+  - file://prompt.md
 
-Você é um SRE sênior da Aegis especializado em pipelines de dados. Sua tarefa é analisar o estado atual do Forge e produzir um diagnóstico que servirá de base para a migração para um modelo orientado a eventos.
+providers:
+  - openai:gpt-4o-mini
 
-## Estado atual do Forge
+tests:
+  ## Teste 1 — Diagnóstico (apenas prompt 0)
+  - description: "Elo 1 — Diagnóstico do estado atual do Forge"
+    prompts:
+      - 0
+    vars:
+      estado_atual_forge: |
+        Forge hoje:
+        - ingestão: um job em cron acorda a cada 60min (o "forge-batch-ingest")
+        - transformação: 14 etapas de processamento encadeadas (em Spark), ~40min no total
+        - destino: grava em tabelas no data warehouse, particionadas por hora
+        - ponto frágil: se um lote falha, o próximo acumula o dobro de volume
+        - quem depende do Forge: Sentinel (lê as tabelas agregadas), Cerebro (indexa
+          os eventos transformados) e os relatórios de billing da Pepper (rodam de madrugada)
+      requisitos_migracao: |
+        - consumir do Relay continuamente, processando em pequenos blocos no lugar do lote de 1h
+        - manter quem depende do Forge funcionando durante a transição
+        - nada de virada única (big-bang): a migração tem que ir em passos e poder voltar atrás
+    assert:
+      - type: llm-rubric
+        value: |
+          Avalie o diagnóstico nos 2 critérios abaixo (0-2 cada, total 0-4):
 
-```
-{{estado_atual_forge}}
-```
+          ## Critério 1 — Precisão do diagnóstico (0-2)
+          Identifica corretamente os pontos frágeis: batch de 1h, acúmulo de falha, dependências?
+          Nota 0: Diagnóstico genérico ou incorreto.
+          Nota 1: Parcialmente correto, omite algum ponto frágil.
+          Nota 2: Diagnóstico completo e preciso.
 
-## Requisitos da migração
+          ## Critério 2 — Clareza da exposição (0-2)
+          O diagnóstico é estruturado e claro para servir de entrada para o próximo elo?
+          Nota 0: Confuso ou desestruturado.
+          Nota 1: Estruturado mas com lacunas.
+          Nota 2: Clareza total, pronto para o próximo elo.
 
-```
-{{requisitos_migracao}}
-```
+          Corte: total >= 3. Se total < 3, REPROVADO.
 
-## Instruções de diagnóstico
+  ## Teste 2 — Etapas da migração (apenas prompt 1)
+  - description: "Elo 2 — Etapas da migração (incremental e reversível)"
+    prompts:
+      - 1
+    vars:
+      diagnostico_forge: |
+        Diagnóstico do Forge:
+        - Gargalo principal: pipeline batch de 60min com 14 etapas encadeadas em Spark (~40min)
+        - Ponto frágil: falha em lote acumula o dobro no próximo
+        - Dependentes críticos: Sentinel (agregados), Cerebro (indexação), billing (relatórios madrugada)
+        - Objetivo da migração: consumir do Relay continuamente em pequenos blocos
+        - Restrição: nada de big-bang, migração em passos reversíveis
+    assert:
+      - type: llm-rubric
+        value: |
+          Avalie as etapas propostas nos 2 critérios abaixo (0-2 cada, total 0-4):
 
-Analise o estado atual e responda:
+          ## Critério 1 — Progressividade (0-2)
+          As etapas são incrementais e reversíveis (nada de big-bang)?
+          Nota 0: Propõe migração única.
+          Nota 1: Etapas existem mas não são reversíveis.
+          Nota 2: Etapas incrementais com rollback explícito.
 
-### 1. Gargalos identificados
-- Onde está o principal gargalo no pipeline atual?
-- Como o modelo batch impacta os consumidores (Sentinel, Cerebro, billing)?
-- Qual o efeito dominó quando um lote falha?
+          ## Critério 2 — Cobertura de dependências (0-2)
+          Considera os dependentes (Sentinel, Cerebro, billing) durante a transição?
+          Nota 0: Ignora dependentes.
+          Nota 1: Menciona mas não detalha.
+          Nota 2: Dependentes considerados em cada etapa.
 
-### 2. Riscos da migração
-- Quais são os principais riscos de migrar de batch para event-driven?
-- O que pode quebrar durante a transição?
-- Como mitigar cada risco identificado?
+          Corte: total >= 3. Se total < 3, REPROVADO.
 
-### 3. Dependências críticas
-- Quais sistemas dependem do Forge hoje?
-- O que precisa continuar funcionando durante a migração?
-- Qual a ordem recomendada de migração dos consumidores?
+  ## Teste 3 — Plano executável (apenas prompt 2)
+  - description: "Elo 3 — Plano executável e reversível"
+    prompts:
+      - 2
+    vars:
+      etapas_migracao: |
+        Etapas da migração:
+        1. Introduzir eventos de monitoramento no Forge (sem alterar lógica de processamento)
+        2. Criar consumer paralelo ao batch job, processando em micro-batches
+        3. Migrar gradualmente os consumidores do batch para o stream
+        4. Descomissionar o batch job após validação
+        Requisitos: cada etapa deve ter rollback documentado
+    assert:
+      - type: llm-rubric
+        value: |
+          Avalie o plano nos 2 critérios abaixo (0-2 cada, total 0-4):
 
-### 4. Critérios de sucesso
-- Como saber se a migração está no caminho certo?
-- Quais métricas indicam que o novo modelo é superior ao antigo?
-- Qual o ponto de rollback (quando voltar atrás)?
+          ## Critério 1 — Executabilidade (0-2)
+          O plano tem ações concretas (comandos, configurações, passos técnicos)?
+          Nota 0: Apenas conceitual.
+          Nota 1: Ações genéricas.
+          Nota 2: Passos técnicos específicos e executáveis.
 
-## Formato de saída
+          ## Critério 2 — Reversibilidade (0-2)
+          Cada etapa tem rollback documentado?
+          Nota 0: Sem rollback.
+          Nota 1: Rollback mencionado mas não detalhado.
+          Nota 2: Rollback explícito por etapa.
 
-```
-## Diagnóstico do Forge
-
-### Gargalos
-1. <gargalo principal>
-2. <gargalo secundário>
-
-### Riscos
-- <risco 1> → <mitigação>
-- <risco 2> → <mitigação>
-
-### Dependências
-- <sistema>: <o que precisa>
-
-### Critérios de sucesso
-- <métrica 1>
-- <métrica 2>
-- <ponto de rollback>
-```
-```
-
----
+          Corte: total >= 3. Se total < 3, REPROVADO.

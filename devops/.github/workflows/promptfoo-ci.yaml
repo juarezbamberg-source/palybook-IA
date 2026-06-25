@@ -1,0 +1,115 @@
+# .github/workflows/promptfoo-ci.yml
+# Pipeline de avaliação contínua — Playbook AEGIS
+# Roda em todo PR e push na main
+
+name: Promptfoo CI — Playbook AEGIS
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  evaluate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout do repositório
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Instalar promptfoo
+        run: npm install -g promptfoo
+
+      - name: Configurar chaves de API
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          echo "OPENAI_API_KEY=$OPENAI_API_KEY" >> $GITHUB_ENV
+          echo "ANTHROPIC_API_KEY=$ANTHROPIC_API_KEY" >> $GITHUB_ENV
+
+      - name: 📋 Nota de Triagem
+        run: promptfoo eval -c devops/nota-de-triagem/promptfooconfig.yaml --no-cache --output resultados/nota-de-triagem.json
+        continue-on-error: true
+
+      - name: 📋 Triagem de Pods
+        run: promptfoo eval -c devops/triagem-de-pods/promptfooconfig.yaml --no-cache --output resultados/triagem-de-pods.json
+        continue-on-error: true
+
+      - name: 📋 NetworkPolicy Sentinel
+        run: promptfoo eval -c devops/networkpolicy-sentinel/promptfooconfig.yaml --no-cache --output resultados/networkpolicy-sentinel.json
+        continue-on-error: true
+
+      - name: 📋 Causa-Raiz Cerebro (LLM-as-judge)
+        run: promptfoo eval -c devops/causa-raiz/promptfooconfig.yaml --no-cache --output resultados/causa-raiz.json
+        continue-on-error: true
+
+      - name: 📋 Backpressure Relay (LLM-as-judge)
+        run: promptfoo eval -c devops/backpressure-relay/promptfooconfig.yaml --no-cache --output resultados/backpressure-relay.json
+        continue-on-error: true
+
+      - name: 📋 Migração Forge — Cadeia completa (3 elos)
+        run: |
+          promptfoo eval -c devops/migracao-forge/01-Diagnostico/promptfooconfig.yaml --no-cache --output resultados/migracao-forge-01.json
+          promptfoo eval -c devops/migracao-forge/02-Etapas_migracao/promptfooconfig.yaml --no-cache --output resultados/migracao-forge-02.json
+          promptfoo eval -c devops/migracao-forge/03-Plano_executavel/promptfooconfig.yaml --no-cache --output resultados/migracao-forge-03.json
+        continue-on-error: true
+
+      - name: 📊 Consolidar resultados e determinar falha do build
+        run: |
+          echo "## 📊 Resultados da Suíte de Testes — Playbook AEGIS" > $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          TOTAL_PASS=0
+          TOTAL_FAIL=0
+          HAS_ANY_FAIL=false
+          
+          for file in resultados/*.json; do
+            name=$(basename "$file" .json)
+            results=$(cat "$file")
+            
+            pass=$(echo "$results" | jq '.results.stats.successes // 0')
+            fail=$(echo "$results" | jq '.results.stats.failures // 0')
+            errors=$(echo "$results" | jq '.results.stats.errors // 0')
+            
+            TOTAL_PASS=$((TOTAL_PASS + pass))
+            TOTAL_FAIL=$((TOTAL_FAIL + fail))
+            
+            if [ "$fail" -gt 0 ] || [ "$errors" -gt 0 ]; then
+              HAS_ANY_FAIL=true
+              echo "❌ **$name**: $pass passed, $fail failed, $errors errors" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "✅ **$name**: $pass passed, $fail failed, $errors errors" >> $GITHUB_STEP_SUMMARY
+            fi
+          done
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "---" >> $GITHUB_STEP_SUMMARY
+          echo "**Total**: $TOTAL_PASS passed, $TOTAL_FAIL failed" >> $GITHUB_STEP_SUMMARY
+          
+          # Estratégia de gate: falha se QUALQUER teste falhar
+          if [ "$HAS_ANY_FAIL" = true ]; then
+            echo "❌ **Build FAILED** — Um ou mais testes falharam." >> $GITHUB_STEP_SUMMARY
+            exit 1
+          else
+            echo "✅ **Build PASSED** — Todos os testes passaram." >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Comentar resultado no PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const summary = fs.readFileSync(process.env.GITHUB_STEP_SUMMARY, 'utf8');
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: summary
+            });

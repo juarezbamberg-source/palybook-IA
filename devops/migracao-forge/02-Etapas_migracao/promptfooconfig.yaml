@@ -1,0 +1,35 @@
+# promptfooconfig.yaml — Etapas da Migração do Forge (Elo 2)
+
+prompts:
+  - file://./prompt.md
+providers:
+  - openai:gpt-4o-mini
+
+tests:
+  - description: "Elo 2 — Etapas da migração (incremental e reversível)"
+    vars:
+      diagnostico_forge: |
+        Diagnóstico do Forge:
+        - Gargalo principal: pipeline batch de 60min com 14 etapas encadeadas em Spark (~40min)
+        - Ponto frágil: falha em lote acumula o dobro no próximo
+        - Dependentes críticos: Sentinel (agregados), Cerebro (indexação), billing (relatórios madrugada)
+        - Objetivo da migração: consumir do Relay continuamente em pequenos blocos
+        - Restrição: nada de big-bang, migração em passos reversíveis
+    assert:
+      - type: llm-rubric
+        value: |
+          Avalie as etapas propostas nos 2 critérios abaixo (0-2 cada, total 0-4):
+
+          ## Critério 1 — Progressividade (0-2)
+          As etapas são incrementais e reversíveis (nada de big-bang)?
+          Nota 0: Propõe migração única.
+          Nota 1: Etapas existem mas não são reversíveis.
+          Nota 2: Etapas incrementais com rollback explícito.
+
+          ## Critério 2 — Cobertura de dependências (0-2)
+          Considera os dependentes (Sentinel, Cerebro, billing) durante a transição?
+          Nota 0: Ignora dependentes.
+          Nota 1: Menciona mas não detalha.
+          Nota 2: Dependentes considerados em cada etapa.
+
+          Corte: total >= 3. Se total < 3, REPROVADO.

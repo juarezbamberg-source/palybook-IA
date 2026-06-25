@@ -1,0 +1,59 @@
+# promptfooconfig.yaml — NetworkPolicy Sentinel
+# Testes determinísticos: kind, policyTypes, sem allow-all, portas específicas, comentários, latência ≤15s, custo ≤$0.01
+
+prompts:
+  - file://prompt.md
+
+providers:
+  - openai:gpt-4o-mini
+  - perplexity:sonar
+
+tests:
+  - vars:
+      manifesto_permissivo: >
+        apiVersion: networking.k8s.io/v1
+        kind: NetworkPolicy
+        metadata:
+          name: sentinel-allow
+          namespace: sentinel-prod
+        spec:
+          podSelector: {}
+          policyTypes:
+            - Ingress
+            - Egress
+          ingress:
+            - {}
+          egress:
+            - {}
+      regras_padrao: >
+        - pods do Sentinel só aceitam tráfego de entrada do Relay e do gateway de API
+        - pods do Sentinel só fazem saída para: Forge (porta 5432), Cerebro (porta 9200) e DNS interno
+        - nada de "allow all" em ingress ou egress
+        - política default-deny explícita no namespace
+        - toda regra precisa de comentário dizendo qual fluxo legítimo ela libera
+      mapa_servicos: >
+        Sentinel     → namespace sentinel-prod, pods com label app=sentinel
+        Relay        → namespace relay-prod,    pods com label app=relay
+        API gateway  → namespace edge,          pods com label app=api-gateway
+        Forge        → namespace forge-prod,    pods com label app=forge,   porta 5432
+        Cerebro      → namespace cerebro-prod,  pods com label app=cerebro, porta 9200
+        DNS interno  → namespace kube-system,   pods com label k8s-app=kube-dns, porta 53
+    assert:
+      - type: contains
+        value: "kind: NetworkPolicy"
+      - type: contains
+        value: "Ingress"
+      - type: contains
+        value: "Egress"
+      - type: javascript
+        value: "!output.includes('- {}') && !output.includes('ingress: - {}') && !output.includes('egress: - {}')"
+      - type: contains
+        value: "5432"
+      - type: contains
+        value: "9200"
+      - type: contains
+        value: "app: relay"
+      - type: regex
+        value: "#.*"
+      - type: latency
+        threshold : 15000

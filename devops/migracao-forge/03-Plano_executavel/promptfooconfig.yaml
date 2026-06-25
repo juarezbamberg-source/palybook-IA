@@ -1,0 +1,36 @@
+# promptfooconfig.yaml — Plano Executável da Migração do Forge (Elo 3)
+
+prompts:
+  - file://./prompt.md
+
+providers:
+  - openai:gpt-4o-mini
+
+tests:
+  - description: "Elo 3 — Plano executável e reversível"
+    vars:
+      etapas_migracao: |
+        Etapas da migração:
+        1. Introduzir eventos de monitoramento no Forge (sem alterar lógica de processamento)
+        2. Criar consumer paralelo ao batch job, processando em micro-batches
+        3. Migrar gradualmente os consumidores do batch para o stream
+        4. Descomissionar o batch job após validação
+        Requisitos: cada etapa deve ter rollback documentado
+    assert:
+      - type: llm-rubric
+        value: |
+          Avalie o plano nos 2 critérios abaixo (0-2 cada, total 0-4):
+
+          ## Critério 1 — Executabilidade (0-2)
+          O plano tem ações concretas (comandos, configurações, passos técnicos)?
+          Nota 0: Apenas conceitual.
+          Nota 1: Ações genéricas.
+          Nota 2: Passos técnicos específicos e executáveis.
+
+          ## Critério 2 — Reversibilidade (0-2)
+          Cada etapa tem rollback documentado?
+          Nota 0: Sem rollback.
+          Nota 1: Rollback mencionado mas não detalhado.
+          Nota 2: Rollback explícito por etapa.
+
+          Corte: total >= 3. Se total < 3, REPROVADO.
