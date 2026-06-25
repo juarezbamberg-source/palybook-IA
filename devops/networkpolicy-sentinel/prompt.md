@@ -69,4 +69,3 @@ Após gerar a primeira versão (v1), você deve:
 
 Registre cada iteração claramente.
 ```
-

@@ -2,6 +2,7 @@
 
 prompts:
   - file://./prompt.md
+  
 providers:
   - openai:gpt-4o-mini
 

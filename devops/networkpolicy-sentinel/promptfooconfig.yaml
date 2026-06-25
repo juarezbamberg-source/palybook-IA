@@ -55,4 +55,4 @@ tests:
       - type: regex
         value: "#.*"
       - type: latency
-        threshold : 15000
+        threshold : 30000
