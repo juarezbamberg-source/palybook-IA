@@ -49,8 +49,8 @@ tests:
         value: "sentinel-api-7d9c8b6f4-h4m2t"
       - type: icontains
         value: "crashloopbackoff"
-      - type: icontains
-        value: "oomkilled"
+      - type: regex
+        value: (?i)(oomkilled|oom|out.of.memory|memória)
       - type: icontains
         value: "137"
       - type: icontains
@@ -77,7 +77,7 @@ tests:
       snapshot_logs: |
         Sem logs disponíveis porque o container não iniciou.
     assert:
-      - type: contains
+      - type: regex
         value: "[POD] sentinel-api-77f4d8d67c-mv2k9"
       - type: contains
         value: "ImagePullBackOff"

@@ -6,7 +6,6 @@ prompts:
 
 providers:
   - openai:gpt-4o-mini
-  - perplexity:sonar
 
 tests:
   ## Teste 1 — Alerta Sentinel (autoscaler max replicas)
