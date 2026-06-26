@@ -1,8 +1,8 @@
 {
-  "evalId": "eval-PVQ-2026-06-25T22:03:59",
+  "evalId": "eval-FXC-2026-06-26T00:53:19",
   "results": {
     "version": 3,
-    "timestamp": "2026-06-25T22:03:59.427Z",
+    "timestamp": "2026-06-26T00:53:19.044Z",
     "prompts": [
       {
         "raw": "---\r\nnome: \"Revisão e Correção de NetworkPolicy — Sentinel\"\r\ndescricao: \"A partir de um manifesto permissivo de NetworkPolicy, corrige seguindo o padrão de segurança da Aegis, com auto-revisão e refino iterativo.\"\r\nversao: \"1.0.0\"\r\ntags:\r\n  - kubernetes\r\n  - network-policy\r\n  - seguranca\r\n  - sre\r\n  - aegis\r\n  - sentinel\r\ninputs:\r\n  - nome: manifesto_permissivo\r\n    descricao: \"Manifesto YAML de NetworkPolicy barrado pela revisão de segurança por ser permissivo demais\"\r\n---\r\n\r\n# Prompt: Revisão e Correção de NetworkPolicy — Sentinel (Aegis)\r\n\r\nVocê é um SRE sênior da Aegis especializado em segurança de rede Kubernetes. Recebeu um manifesto de NetworkPolicy que a equipe de segurança barrou por ser permissivo demais. Sua tarefa é corrigi-lo seguindo o padrão da Aegis.\r\n\r\n## Manifesto a ser corrigido\r\n\r\nO manifesto abaixo foi barrado pela revisão de segurança. Analise-o e produza a versão corrigida.\r\n\r\n```\r\n{{manifesto_permissivo}}\r\n```\r\n\r\n## Padrão de segurança da Aegis para o namespace sentinel-prod\r\n\r\nAs regras abaixo definem o padrão que a NetworkPolicy corrigida deve seguir:\r\n\r\n- Pods do Sentinel só aceitam tráfego de **entrada** do Relay (consumo de eventos) e do gateway de API da plataforma\r\n- Pods do Sentinel só fazem **saída** para: Forge (warehouse, porta 5432), Cerebro (busca, porta 9200) e DNS interno\r\n- **Nada de \"allow all\"** em ingress ou egress\r\n- Política **default-deny explícita** no namespace\r\n- Toda regra precisa de **comentário** dizendo qual fluxo legítimo ela libera\r\n\r\n## Mapa de serviços do cluster\r\n\r\nConsulte este mapa para escrever os seletores corretos:\r\n\r\n| Serviço | Namespace | Label | Porta |\r\n|---------|-----------|-------|-------|\r\n| Sentinel | sentinel-prod | app=sentinel | - |\r\n| Relay | relay-prod | app=relay | - |\r\n| API Gateway | edge | app=api-gateway | - |\r\n| Forge | forge-prod | app=forge | 5432 |\r\n| Cerebro | cerebro-prod | app=cerebro | 9200 |\r\n| DNS interno | kube-system | k8s-app=kube-dns | 53 |\r\n\r\n## Formato de saída\r\n\r\nProduza a NetworkPolicy corrigida em YAML, com:\r\n1. **Default-deny** para ingress e egress\r\n2. Regras específicas de **ingress** liberando apenas Relay e API Gateway\r\n3. Regras específicas de **egress** liberando apenas Forge (5432), Cerebro (9200) e DNS interno (53)\r\n4. **Comentários** em cada regra explicando o fluxo legítimo\r\n5. Sem `- {}` ou `podSelector: {}` genérico\r\n\r\n## Instruções de auto-revisão\r\n\r\nApós gerar a primeira versão (v1), você deve:\r\n\r\n1. **Auto-revisão:** analise criticamente a NetworkPolicy que você acabou de gerar como se fosse a Natasha Romanoff. Levante tudo que pode estar errado, permissivo demais, ou faltando.\r\n2. **Perguntas de verificação:** liste pelo menos 3 perguntas que um revisor de segurança faria sobre a política.\r\n3. **Refino:** com base na sua própria crítica, produza uma v2 corrigida.\r\n4. **Repita** o processo de crítica e refino até que você considere a política pronta para aprovação.\r\n\r\nRegistre cada iteração claramente.\r\n```\r\n",
@@ -10,13 +10,13 @@
         "id": "cc3fced1556c9a4ce02812fb33c402091da93c92633b946c93a1ed798d83cfff",
         "provider": "openai:gpt-4o-mini",
         "metrics": {
-          "score": 0.8888888888888888,
-          "testPassCount": 0,
-          "testFailCount": 1,
+          "score": 1,
+          "testPassCount": 1,
+          "testFailCount": 0,
           "testErrorCount": 0,
-          "assertPassCount": 8,
-          "assertFailCount": 1,
-          "totalLatencyMs": 39668,
+          "assertPassCount": 9,
+          "assertFailCount": 0,
+          "totalLatencyMs": 15862,
           "tokenUsage": {
             "prompt": 831,
             "completion": 1024,
@@ -55,11 +55,10 @@
     "results": [
       {
         "cost": 0.00073905,
-        "error": "Latency 39668ms is greater than threshold 30000ms",
         "gradingResult": {
-          "pass": false,
-          "score": 0.8888888888888888,
-          "reason": "Latency 39668ms is greater than threshold 30000ms",
+          "pass": true,
+          "score": 1,
+          "reason": "All assertions passed",
           "namedScores": {},
           "tokensUsed": {
             "total": 0,
@@ -142,9 +141,9 @@
               }
             },
             {
-              "pass": false,
-              "score": 0,
-              "reason": "Latency 39668ms is greater than threshold 30000ms",
+              "pass": true,
+              "score": 1,
+              "reason": "Assertion passed",
               "assertion": {
                 "type": "latency",
                 "threshold": 30000
@@ -152,8 +151,8 @@
             }
           ]
         },
-        "id": "630ee904-93ec-486d-9745-1573c171bc43",
-        "latencyMs": 39668,
+        "id": "b2bbe67a-3760-487a-b1df-bc723e52d230",
+        "latencyMs": 15862,
         "namedScores": {},
         "prompt": {
           "raw": "---\r\nnome: \"Revisão e Correção de NetworkPolicy — Sentinel\"\r\ndescricao: \"A partir de um manifesto permissivo de NetworkPolicy, corrige seguindo o padrão de segurança da Aegis, com auto-revisão e refino iterativo.\"\r\nversao: \"1.0.0\"\r\ntags:\r\n  - kubernetes\r\n  - network-policy\r\n  - seguranca\r\n  - sre\r\n  - aegis\r\n  - sentinel\r\ninputs:\r\n  - nome: manifesto_permissivo\r\n    descricao: \"Manifesto YAML de NetworkPolicy barrado pela revisão de segurança por ser permissivo demais\"\r\n---\r\n\r\n# Prompt: Revisão e Correção de NetworkPolicy — Sentinel (Aegis)\r\n\r\nVocê é um SRE sênior da Aegis especializado em segurança de rede Kubernetes. Recebeu um manifesto de NetworkPolicy que a equipe de segurança barrou por ser permissivo demais. Sua tarefa é corrigi-lo seguindo o padrão da Aegis.\r\n\r\n## Manifesto a ser corrigido\r\n\r\nO manifesto abaixo foi barrado pela revisão de segurança. Analise-o e produza a versão corrigida.\r\n\r\n```\r\napiVersion: networking.k8s.io/v1 kind: NetworkPolicy metadata:\n  name: sentinel-allow\n  namespace: sentinel-prod\nspec:\n  podSelector: {}\n  policyTypes:\n    - Ingress\n    - Egress\n  ingress:\n    - {}\n  egress:\n    - {}\r\n```\r\n\r\n## Padrão de segurança da Aegis para o namespace sentinel-prod\r\n\r\nAs regras abaixo definem o padrão que a NetworkPolicy corrigida deve seguir:\r\n\r\n- Pods do Sentinel só aceitam tráfego de **entrada** do Relay (consumo de eventos) e do gateway de API da plataforma\r\n- Pods do Sentinel só fazem **saída** para: Forge (warehouse, porta 5432), Cerebro (busca, porta 9200) e DNS interno\r\n- **Nada de \"allow all\"** em ingress ou egress\r\n- Política **default-deny explícita** no namespace\r\n- Toda regra precisa de **comentário** dizendo qual fluxo legítimo ela libera\r\n\r\n## Mapa de serviços do cluster\r\n\r\nConsulte este mapa para escrever os seletores corretos:\r\n\r\n| Serviço | Namespace | Label | Porta |\r\n|---------|-----------|-------|-------|\r\n| Sentinel | sentinel-prod | app=sentinel | - |\r\n| Relay | relay-prod | app=relay | - |\r\n| API Gateway | edge | app=api-gateway | - |\r\n| Forge | forge-prod | app=forge | 5432 |\r\n| Cerebro | cerebro-prod | app=cerebro | 9200 |\r\n| DNS interno | kube-system | k8s-app=kube-dns | 53 |\r\n\r\n## Formato de saída\r\n\r\nProduza a NetworkPolicy corrigida em YAML, com:\r\n1. **Default-deny** para ingress e egress\r\n2. Regras específicas de **ingress** liberando apenas Relay e API Gateway\r\n3. Regras específicas de **egress** liberando apenas Forge (5432), Cerebro (9200) e DNS interno (53)\r\n4. **Comentários** em cada regra explicando o fluxo legítimo\r\n5. Sem `- {}` ou `podSelector: {}` genérico\r\n\r\n## Instruções de auto-revisão\r\n\r\nApós gerar a primeira versão (v1), você deve:\r\n\r\n1. **Auto-revisão:** analise criticamente a NetworkPolicy que você acabou de gerar como se fosse a Natasha Romanoff. Levante tudo que pode estar errado, permissivo demais, ou faltando.\r\n2. **Perguntas de verificação:** liste pelo menos 3 perguntas que um revisor de segurança faria sobre a política.\r\n3. **Refino:** com base na sua própria crítica, produza uma v2 corrigida.\r\n4. **Repita** o processo de crítica e refino até que você considere a política pronta para aprovação.\r\n\r\nRegistre cada iteração claramente.\r\n```\r\n",
@@ -167,7 +166,7 @@
           "label": ""
         },
         "response": {
-          "output": "## Versão 1 (v1) - NetworkPolicy Corrigida\n\n```yaml\napiVersion: networking.k8s.io/v1\nkind: NetworkPolicy\nmetadata:\n  name: sentinel-network-policy\n  namespace: sentinel-prod\nspec:\n  podSelector:\n    matchLabels:\n      app: sentinel\n  policyTypes:\n    - Ingress\n    - Egress\n  ingress:\n    - from:\n        - podSelector:\n            matchLabels:\n              app: relay  # Permite tráfego de entrada do Relay para consumo de eventos\n        - podSelector:\n            matchLabels:\n              app: api-gateway  # Permite tráfego de entrada do API Gateway\n  egress:\n    - to:\n        - podSelector:\n            matchLabels:\n              app: forge  # Permite tráfego de saída para o Forge (porta 5432)\n          ports:\n            - port: 5432\n        - podSelector:\n            matchLabels:\n              app: cerebro  # Permite tráfego de saída para o Cerebro (porta 9200)\n          ports:\n            - port: 9200\n        - podSelector:\n            matchLabels:\n              k8s-app: kube-dns  # Permite tráfego de saída para o DNS interno (porta 53)\n          ports:\n            - port: 53\n```\n\n## Auto-revisão da v1\n\n1. **Crítica:** A política parece estar em conformidade com os requisitos, mas a definição de `podSelector` para o `ingress` e `egress` é muito específica. Poderia haver uma preocupação com a possibilidade de que novos pods com as mesmas labels possam ser criados e não sejam intencionalmente permitidos.\n2. **Permissividade:** A política não é permissiva, mas a falta de um `namespaceSelector` pode permitir que pods de outros namespaces acessem os serviços, o que não é desejável.\n3. **Faltando:** Não há uma política de `default-deny` explícita, o que é um requisito.\n\n### Perguntas de verificação\n\n1. A política garante que apenas os pods do namespace `sentinel-prod` possam se comunicar com os serviços permitidos?\n2. Existe alguma possibilidade de que novos pods com as mesmas labels sejam criados em outros namespaces e possam se comunicar?\n3. A política de `default-deny` está claramente definida para evitar tráfego não autorizado?\n\n## Versão 2 (v2) - NetworkPolicy Corrigida\n\n```yaml\napiVersion: networking.k8s.io/v1\nkind: NetworkPolicy\nmetadata:\n  name: sentinel-network-policy\n  namespace: sentinel-prod\nspec:\n  podSelector:\n    matchLabels:\n      app: sentinel\n  policyTypes:\n    - Ingress\n    - Egress\n  ingress:\n    - from:\n        - namespaceSelector:\n            matchLabels:\n              name: relay-prod  # Permite tráfego de entrada do Relay para consumo de eventos\n          podSelector:\n            matchLabels:\n              app: relay\n        - namespaceSelector:\n            matchLabels:\n              name: edge  # Permite tráfego de entrada do API Gateway\n          podSelector:\n            matchLabels:\n              app: api-gateway\n  egress:\n    - to:\n        - namespaceSelector:\n            matchLabels:\n              name: forge-prod  # Permite tráfego de saída para o Forge (porta 5432)\n          podSelector:\n            matchLabels:\n              app: forge\n          ports:\n            - port: 5432\n        - namespaceSelector:\n            matchLabels:\n              name: cerebro-prod  # Permite tráfego de saída para o Cerebro (porta 9200)\n          podSelector:\n            matchLabels:\n              app: cerebro\n          ports:\n            - port: 9200\n        - namespaceSelector:\n            matchLabels:\n              name: kube-system  # Permite tráfego de saída para o DNS interno (porta 53)\n          podSelector:\n            matchLabels:\n              k8s-app: kube-dns\n          ports:\n            - port: 53\n```\n\n## Auto-revisão da v2\n\n1. **Crítica:** A política agora inclui `namespaceSelector`, o que é uma melhoria significativa. No entanto, ainda não está claro se a política de `default-deny` está sendo aplicada corretamente.\n2. **Permissividade:** A política parece estar bem restrita, mas é importante garantir que não haja outros pods com as mesmas labels em namespaces não autorizados.\n3. **Faltando:** A política de `default-deny` ainda não foi explicitamente definida.\n\n### Perguntas de verificação\n\n1. A política garante que apenas os pods do namespace `sentinel-prod` possam se comunicar com os serviços permitidos?\n2. Existe alguma possibilidade de que novos pods com as mesmas labels sejam criados em outros namespaces e possam se comunicar?\n3. A política de `default-deny`",
+          "output": "## Versão 1 (v1) - NetworkPolicy Corrigida\n\n```yaml\napiVersion: networking.k8s.io/v1\nkind: NetworkPolicy\nmetadata:\n  name: sentinel-network-policy\n  namespace: sentinel-prod\nspec:\n  podSelector:\n    matchLabels:\n      app: sentinel\n  policyTypes:\n    - Ingress\n    - Egress\n  ingress:\n    - from:\n        - podSelector:\n            matchLabels:\n              app: relay  # Permite tráfego de entrada do Relay para consumo de eventos\n        - podSelector:\n            matchLabels:\n              app: api-gateway  # Permite tráfego de entrada do API Gateway\n  egress:\n    - to:\n        - podSelector:\n            matchLabels:\n              app: forge  # Permite tráfego de saída para o Forge (porta 5432)\n          ports:\n            - port: 5432\n        - podSelector:\n            matchLabels:\n              app: cerebro  # Permite tráfego de saída para o Cerebro (porta 9200)\n          ports:\n            - port: 9200\n        - podSelector:\n            matchLabels:\n              k8s-app: kube-dns  # Permite tráfego de saída para o DNS interno (porta 53)\n          ports:\n            - port: 53\n```\n\n## Auto-revisão da v1\n\n1. **Crítica:** A política parece estar em conformidade com os requisitos de segurança, mas é importante verificar se os seletores de pod estão corretos e se não há regras que possam ser consideradas permissivas.\n2. **Permissividade:** A política não contém regras de \"allow all\", o que é positivo. No entanto, é importante garantir que os labels utilizados nos seletores estejam corretos e que não haja sobreposição com outros serviços que não deveriam ter acesso.\n3. **Faltando:** Não há menção a um default-deny explícito, que é um requisito importante.\n\n## Perguntas de verificação\n\n1. Os seletores de pod utilizados estão corretos e correspondem exatamente aos serviços que devem ter acesso?\n2. Existe alguma possibilidade de que outros pods com labels semelhantes possam ser afetados por essas regras?\n3. A política de default-deny foi implementada corretamente para garantir que não haja tráfego não autorizado?\n\n## Versão 2 (v2) - NetworkPolicy Corrigida\n\n```yaml\napiVersion: networking.k8s.io/v1\nkind: NetworkPolicy\nmetadata:\n  name: sentinel-network-policy\n  namespace: sentinel-prod\nspec:\n  podSelector:\n    matchLabels:\n      app: sentinel\n  policyTypes:\n    - Ingress\n    - Egress\n  ingress:\n    - from:\n        - podSelector:\n            matchLabels:\n              app: relay  # Permite tráfego de entrada do Relay para consumo de eventos\n        - podSelector:\n            matchLabels:\n              app: api-gateway  # Permite tráfego de entrada do API Gateway\n  egress:\n    - to:\n        - podSelector:\n            matchLabels:\n              app: forge  # Permite tráfego de saída para o Forge (porta 5432)\n          ports:\n            - port: 5432\n        - podSelector:\n            matchLabels:\n              app: cerebro  # Permite tráfego de saída para o Cerebro (porta 9200)\n          ports:\n            - port: 9200\n        - podSelector:\n            matchLabels:\n              k8s-app: kube-dns  # Permite tráfego de saída para o DNS interno (porta 53)\n          ports:\n            - port: 53\n  # Default-deny explícito para ingress e egress\n  ingress:\n    - from: []\n  egress:\n    - to: []\n```\n\n## Auto-revisão da v2\n\n1. **Crítica:** A política agora inclui um default-deny explícito, o que é uma melhoria significativa. No entanto, a estrutura de ingress e egress ainda pode ser revisada para garantir que não haja duplicação.\n2. **Permissividade:** A política não contém regras de \"allow all\", mas a inclusão de default-deny deve ser verificada para garantir que não haja tráfego não autorizado.\n3. **Faltando:** A estrutura de ingress e egress deve ser revisada para garantir que não haja redundância.\n\n## Perguntas de verificação\n\n1. A estrutura de ingress e egress está correta e não contém duplicações?\n2. O default-deny está implementado corretamente e não permite tráfego não autorizado?\n3. Todos os serviços necessários estão cobertos pelas regras de ingress e egress?\n\n## Versão 3 (v3) - NetworkPolicy Corrigida\n\n```yaml\napiVersion: networking.k8s.io/v1\nkind: NetworkPolicy\nmetadata:\n  name: sentinel-network-policy\n  namespace: sentinel-prod\nspec:\n  podSelector",
           "tokenUsage": {
             "total": 1855,
             "prompt": 831,
@@ -180,7 +179,7 @@
             }
           },
           "cached": false,
-          "latencyMs": 39668,
+          "latencyMs": 15862,
           "finishReason": "length",
           "cost": 0.00073905,
           "guardrails": {
@@ -197,9 +196,9 @@
                 "cf-ray": "[REDACTED]",
                 "connection": "keep-alive",
                 "content-type": "application/json",
-                "date": "Thu, 25 Jun 2026 22:04:39 GMT",
+                "date": "Fri, 26 Jun 2026 00:53:35 GMT",
                 "openai-organization": "[REDACTED]",
-                "openai-processing-ms": "39414",
+                "openai-processing-ms": "15620",
                 "openai-project": "[REDACTED]",
                 "openai-version": "[REDACTED]",
                 "server": "cloudflare",
@@ -219,8 +218,8 @@
             }
           }
         },
-        "score": 0.8888888888888888,
-        "success": false,
+        "score": 1,
+        "success": true,
         "testCase": {
           "vars": {
             "manifesto_permissivo": "apiVersion: networking.k8s.io/v1 kind: NetworkPolicy metadata:\n  name: sentinel-allow\n  namespace: sentinel-prod\nspec:\n  podSelector: {}\n  policyTypes:\n    - Ingress\n    - Egress\n  ingress:\n    - {}\n  egress:\n    - {}\n",
@@ -313,9 +312,9 @@
               "cf-ray": "[REDACTED]",
               "connection": "keep-alive",
               "content-type": "application/json",
-              "date": "Thu, 25 Jun 2026 22:04:39 GMT",
+              "date": "Fri, 26 Jun 2026 00:53:35 GMT",
               "openai-organization": "[REDACTED]",
-              "openai-processing-ms": "39414",
+              "openai-processing-ms": "15620",
               "openai-project": "[REDACTED]",
               "openai-version": "[REDACTED]",
               "server": "cloudflare",
@@ -335,12 +334,12 @@
           },
           "_promptfooFileMetadata": {}
         },
-        "failureReason": 1
+        "failureReason": 0
       }
     ],
     "stats": {
-      "successes": 0,
-      "failures": 1,
+      "successes": 1,
+      "failures": 0,
       "errors": 0,
       "tokenUsage": {
         "prompt": 831,
@@ -370,8 +369,8 @@
           }
         }
       },
-      "durationMs": 39734,
-      "evaluationDurationMs": 39734
+      "durationMs": 15974,
+      "evaluationDurationMs": 15974
     }
   },
   "config": {
@@ -443,8 +442,8 @@
     "nodeVersion": "v24.11.1",
     "platform": "win32",
     "arch": "x64",
-    "exportedAt": "2026-06-25T22:04:39.268Z",
-    "evaluationCreatedAt": "2026-06-25T22:03:59.427Z",
+    "exportedAt": "2026-06-26T00:53:35.212Z",
+    "evaluationCreatedAt": "2026-06-26T00:53:19.044Z",
     "author": "profjuarez2022@gmail.com"
   },
   "vars": [

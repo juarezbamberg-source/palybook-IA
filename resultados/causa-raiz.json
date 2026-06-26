@@ -1,8 +1,8 @@
 {
-  "evalId": "eval-Qzm-2026-06-25T22:04:44",
+  "evalId": "eval-haR-2026-06-26T00:53:39",
   "results": {
     "version": 3,
-    "timestamp": "2026-06-25T22:04:44.140Z",
+    "timestamp": "2026-06-26T00:53:39.657Z",
     "prompts": [
       {
         "raw": "---\r\nnome: \"Análise de Causa-Raiz — Cerebro\"\r\ndescricao: \"A partir de um pacote de 3 artefatos (configuração, métricas e logs do Elasticsearch), realiza análise de causa-raiz de degradação no sistema de indexação e busca Cerebro.\"\r\nversao: \"1.3.0\"\r\ntags:\r\n  - causa-raiz\r\n  - elasticsearch\r\n  - observabilidade\r\n  - sre\r\n  - aegis\r\n  - cerebro\r\n  - incident-response\r\ninputs:\r\n  - nome: artefato_config\r\n    descricao: \"Configuração do cluster Elasticsearch do Cerebro (cerebro.yaml): shards, replicas, jvm_heap, refresh_interval, reindex_job schedule e query_cache\"\r\n  - nome: artefato_metricas\r\n    descricao: \"Métricas do Cerebro nas últimas 2 horas (search_p99_ms, indexed_docs_per_s, heap_used_pct, cache_hit_pct) em intervalos de 30min\"\r\n  - nome: artefato_logs\r\n    descricao: \"Logs nativos do Elasticsearch do nó cerebro-node-3 cobrindo a janela do problema (08:00 às 10:00 UTC)\"\r\n---\r\n\r\n# Prompt: Análise de Causa-Raiz — Cerebro (Aegis)\r\n\r\nVocê é um SRE sênior da Aegis especializado em sistemas de indexação e busca. Recebeu um pacote de artefatos sobre uma degradação no Cerebro (motor Elasticsearch). Sua tarefa é realizar uma análise de causa-raiz cruzando as três fontes de dados abaixo.\r\n\r\n## Artefatos de entrada\r\n\r\n### Artefato 1 — Configuração do cluster (cerebro.yaml)\r\n\r\n```\r\n{{artefato_config}}\r\n```\r\n\r\n### Artefato 2 — Métricas do Cerebro (últimas 2 horas)\r\n\r\n```\r\n{{artefato_metricas}}\r\n```\r\n\r\n### Artefato 3 — Logs do nó cerebro-node-3 (janela do problema)\r\n\r\n```\r\n{{artefato_logs}}\r\n```\r\n\r\n## Instruções de análise\r\n\r\nSiga o raciocínio abaixo em ordem. Não pule etapas.\r\n\r\n### Passo 1 — Estabeleça a linha de base\r\n\r\nAnalise a configuração e as métricas iniciais para entender o estado normal do sistema:\r\n- Qual o horário **esperado** de término do reindex job (schedule + avg_duration_min)?\r\n- Qual o heap disponível total?\r\n- Qual a latência de busca e cache hit no início da janela (08:00)?\r\n\r\n### Passo 2 — Identifique a anormalidade principal\r\n\r\nExamine as métricas ao longo do tempo. O que muda entre 08:00 e 10:00?\r\n- A vazão de indexação (indexed_docs_per_s) aumenta? Quanto e por quê?\r\n- O heap cresce ou se mantém?\r\n- A latência de busca (search_p99) escala? Em quanto?\r\n- O cache hit ratio cai? Para quanto?\r\n\r\n**Crucial**: cruze as métricas com os logs. O reindex job começou às 02:00 com duração esperada de 90min (terminaria ~03:30). Verifique nos logs em que porcentagem ele está às 08:00, 09:00 e 10:00. Ele já deveria ter terminado? Está atrasado? Quanto?\r\n\r\n### Passo 3 — Construa a cadeia causal\r\n\r\nPara cada fenômeno observado, classifique como **CAUSA** ou **CONSEQUÊNCIA**:\r\n\r\n**Causas reais** (o que iniciou a degradação):\r\n- Reindex job não concluiu no prazo esperado → consumiu heap continuamente por horas extras\r\n- Configuração subdimensionada para o volume atual (heap 8g, 12 shards, 1 réplica)\r\n\r\n**Consequências** (o que aconteceu POR CAUSA das causas acima):\r\n- Aumento de indexed_docs_per_s (reindex ainda rodando)\r\n- Heap subindo (GC pressure, old GC)\r\n- Write thread pool enchendo → bulks rejeitados\r\n- Circuit breaker disparando\r\n- Buscas lentas (search_p99 subindo)\r\n- Cache hit caindo (eviction por pressão de memória)\r\n- Buscas parciais (11/12 shards)\r\n\r\nConstrua a cadeia no formato:\r\n\r\n```\r\nCAUSA RAIZ: <qual é>\r\n  ├── CAUSA IMEDIATA 1: <explicação>\r\n  │     └── CONSEQUÊNCIA: <sintoma observado>\r\n  ├── CAUSA IMEDIATA 2: <explicação>\r\n  │     └── CONSEQUÊNCIA: <sintoma observado>\r\n  └── ...\r\n```\r\n\r\n**IMPORTANTE**: Não liste consequências como se fossem causas independentes. Exemplo correto: \"cache hit caiu de 74% para 29%\" é CONSEQUÊNCIA do circuit breaker e da pressão de memória, não uma causa separada.\r\n\r\n### Passo 4 — Conclua com ações\r\n\r\nEntregue uma conclusão que responda:\r\n\r\n1. **Causa raiz**: qual é, em uma frase\r\n2. **Cadeia completa**: causa raiz → causas imediatas → consequências observadas\r\n3. **Ações imediatas** (o plantão executa agora):\r\n   - Seja específico: pausar o quê? Reagendar para quando? Aumentar o quê e para quanto?\r\n4. **Ações estruturais** (pós-incidente):\r\n   - Ajuste de configuração: schedule do reindex, avg_duration_min, heap, limites\r\n   - Monitoramento: quais métricas deveriam ter alertado antes?\r\n\r\n### Passo 5 — Honestidade epistêmica\r\n\r\nListe explicitamente o que os dados **NÃO** permitem concluir:\r\n- Temos logs de apenas 1 nó (cerebro-node-3)? E os outros nós?\r\n- Sabemos se o reindex job falhou (erro) ou apenas está lento (subdimensionado)?\r\n- Temos métricas de CPU ou IO para descartar contenção de recursos?\r\n- Temos dados de consultas externas (clientes buscando mais que o normal)?\r\n\r\nSe houver dados sensíveis (nomes de índices, IPs internos), aponte-os. Se os dados forem insuficientes para concluir algo, reconheça isso — não fabrique certeza.\r\n\r\n## Formato de saída\r\n\r\n```\r\n## Análise de Causa-Raiz — Cerebro\r\n\r\n### Linha de base\r\n<configuração normal do sistema>\r\n\r\n### Anormalidade principal\r\n<o que disparou a degradação — destaque o atraso do reindex>\r\n\r\n### Cadeia causal\r\nCAUSA RAIZ: <qual é>\r\n  ├── CAUSA IMEDIATA 1: <explicação>\r\n  │     └── CONSEQUÊNCIA: <sintoma>\r\n  ├── CAUSA IMEDIATA 2: <explicação>\r\n  │     └── CONSEQUÊNCIA: <sintoma>\r\n  └── ...\r\n\r\n### Ações imediatas (plantão)\r\n1. <ação específica e executável agora>\r\n2. <ação específica e executável agora>\r\n\r\n### Ações estruturais (pós-incidente)\r\n1. <mudança permanente>\r\n2. <mudança permanente>\r\n\r\n### Honestidade epistêmica\r\n<limitações específicas dos dados disponíveis>\r\n```\r\n```\r\n\r\n---\r\n",
@@ -10,30 +10,30 @@
         "id": "6313a5319162ac6497bb364c4bf80a339a3a29227d06f348f2357d3aa06b44c5",
         "provider": "openai:gpt-4o-mini",
         "metrics": {
-          "score": 0.875,
+          "score": 6,
           "testPassCount": 1,
           "testFailCount": 0,
           "testErrorCount": 0,
           "assertPassCount": 1,
           "assertFailCount": 0,
-          "totalLatencyMs": 12901,
+          "totalLatencyMs": 13738,
           "tokenUsage": {
             "prompt": 2915,
-            "completion": 831,
+            "completion": 906,
             "cached": 0,
-            "total": 3746,
+            "total": 3821,
             "numRequests": 1,
             "completionDetails": {
               "reasoning": 0,
               "acceptedPrediction": 0,
               "rejectedPrediction": 0,
-              "cacheReadInputTokens": 0,
+              "cacheReadInputTokens": 2816,
               "cacheCreationInputTokens": 0
             },
             "assertions": {
-              "total": 2730,
-              "prompt": 1976,
-              "completion": 754,
+              "total": 2799,
+              "prompt": 2051,
+              "completion": 748,
               "cached": 0,
               "numRequests": 0,
               "completionDetails": {
@@ -48,22 +48,22 @@
           "namedScores": {},
           "namedScoresCount": {},
           "namedScoreWeights": {},
-          "cost": 0.00093585
+          "cost": 0.00076965
         }
       }
     ],
     "results": [
       {
-        "cost": 0.00093585,
+        "cost": 0.00076965,
         "gradingResult": {
           "pass": true,
-          "score": 0.875,
+          "score": 6,
           "reason": "All assertions passed",
           "namedScores": {},
           "tokensUsed": {
-            "total": 2730,
-            "prompt": 1976,
-            "completion": 754,
+            "total": 2799,
+            "prompt": 2051,
+            "completion": 748,
             "cached": 0,
             "numRequests": 1
           },
@@ -74,16 +74,16 @@
                 "value": "Avalie a saída do prompt de causa-raiz nos 4 critérios abaixo.\nPara cada critério, atribua uma nota de 0 a 2:\n0 = não atende, 1 = atende parcialmente, 2 = atende completamente.\n\n## Critério 1 — Causa-raiz correta (0-2)\nA saída aponta a causa raiz REAL: o reindex job (scheduled 02:00, duração esperada 90min)\nNÃO CONCLUIU até as 10:00 (estava em 41% — apenas 4.1M de 10M docs), continuou consumindo\nheap da JVM por ~8h extras, saturando o sistema.\nOu a saída trata isso como apenas \"sobrecarga\" ou \"aumento de vazão\" sem conectar ao\nreindex travado?\nNota 0: Não menciona o reindex job como causa raiz, ou atribui a causa a fatores genéricos\n(\"sobrecarga\", \"pico de tráfego\").\nNota 1: Menciona o reindex job mas não destaca que ele DEVERIA ter terminado às 03:30 e\nainda estava rodando às 10:00 (6.5h de atraso), ou não conecta isso à saturação do heap.\nNota 2: Aponta explicitamente: reindex job travado/incompleto como causa raiz, conectando:\nreindex não concluiu → consumo contínuo de heap por horas → GC pressure → circuit breaker →\nbuscas lentas/parciais → cache eviction.\n\n## Critério 2 — Correlação × causa (0-2)\nA saída separa corretamente o que é CAUSA do que é CONSEQUÊNCIA?\nCausas reais: reindex travado, configuração de heap subdimensionada para o volume.\nConsequências: aumento de indexed_docs_per_s, heap alto, GC pressure, circuit breaker,\nbuscas lentas, cache hit baixo, buscas parciais.\nNota 0: Trata consequências (heap alto, cache baixo, buscas lentas) como causas equivalentes.\nNota 1: Mistura causa e efeito em alguns pontos (ex.: \"aumento na vazão de indexação\" listado\ncomo causa quando é efeito do reindex ainda rodando).\nNota 2: Hierarquia causal clara: reindex travado → heap saturado → circuit breaker →\ndegradação em cascata. Consequências identificadas como tal.\n\n## Critério 3 — Ação proporcional (0-2)\nA saída propõe ações COERENTES com o diagnóstico, sem sobre nem subdimensionar?\nAções corretas: (1) conter/pausar o reindex job imediatamente, (2) reagendar para fora do\nhorário comercial, (3) revisar avg_duration_min (subestimado: 90min real vs 8h+), (4)\nconsiderar throttle de indexação ou aumentar heap.\nAções genéricas ou desproporcionais: \"aumentar o cluster\", \"reiniciar o nó\", \"comprar mais\nhardware\", \"revisar configuração\" sem especificar o quê.\nNota 0: Ação ausente, genérica (\"revisar\") ou desproporcional (\"aumentar tudo\").\nNota 1: Ação razoável mas vaga (\"interromper reindex e aumentar heap\") sem especificar\ncomo ou por quê.\nNota 2: Ação precisa: pausar reindex job, reagendar, revisar schedule/avg_duration,\nconsiderar throttle ou aumento de heap com justificativa.\n\n## Critério 4 — Honestidade epistêmica (0-2)\nA saída reconhece o que os dados NÃO permitem concluir?\nLimitações reais: (a) só temos logs do cerebro-node-3 — não sabemos o estado dos outros nós,\n(b) não sabemos se o reindex job falhou (erro) ou apenas está lento (subdimensionado),\n(c) não temos métricas de CPU ou IO para descartar contenção de recursos,\n(d) não temos dados de consultas externas (clientes buscando mais que o normal?).\nNota 0: Fabrica certeza (\"a causa é X\") sem reconhecer limitações.\nNota 1: Menciona uma limitação genérica (\"não temos todos os dados\") sem especificar quais.\nNota 2: Lista explicitamente as limitações específicas dos artefatos disponíveis.\n\n## Cálculo da nota final\nSome as notas dos 4 critérios (total 0-8).\nCritério de aprovação: nota total >= 6 E nenhum critério com nota 0.\nSe nota total < 6 OU qualquer critério = 0, a saída é REPROVADA.\n"
               },
               "pass": true,
-              "score": 0.875,
-              "reason": "Critério 1: 2/2 — aponta explicitamente que o reindex job deveria ter terminado às 03:30, ainda estava em 41% às 10:00, e conecta isso ao consumo contínuo de heap, GC, circuit breaker, buscas lentas/parciais e queda do cache. Critério 2: 1/2 — a hierarquia causal principal está correta, mas há alguma mistura de causa e consequência, por exemplo ao listar aumento de latência e pressão de memória como 'causas imediatas' em vez de consequências/intermediários da saturação. Critério 3: 2/2 — propõe pausar o reindex, ajustar heap, revisar schedule e avg_duration_min, e considerar capacidade adicional, ações coerentes com o diagnóstico. Critério 4: 2/2 — lista explicitamente as limitações relevantes: logs de apenas um nó, incerteza sobre falha vs lentidão, ausência de CPU/IO e ausência de dados de tráfego externo. Total: 7/8.",
+              "score": 6,
+              "reason": "Critério 1: 2/2 — identifica explicitamente que o reindex job deveria ter terminado por volta de 03:30, ainda estava incompleto às 10:00 e conecta isso ao consumo contínuo de heap, GC/circuit breaker, cache e buscas lentas/parciais. Critério 2: 1/2 — há uma cadeia causal geral correta, mas mistura consequências como causas, por exemplo tratando aumento de indexed_docs_per_s e latência de busca como causas imediatas. Critério 3: 1/2 — propõe pausar o reindex e aumentar heap/revisar schedule, mas as ações estruturais são um pouco genéricas e não incluem claramente reagendamento fora do horário comercial nem throttle de indexação. Critério 4: 2/2 — lista explicitamente as limitações relevantes: apenas logs de um nó, incerteza entre falha/lentidão do job, ausência de CPU/IO e de dados de consultas externas. Total: 6/8, sem critério zerado.",
               "tokensUsed": {
-                "total": 2730,
-                "prompt": 1976,
-                "completion": 754,
+                "total": 2799,
+                "prompt": 2051,
+                "completion": 748,
                 "cached": 0,
                 "numRequests": 1,
                 "completionDetails": {
-                  "reasoning": 512,
+                  "reasoning": 509,
                   "acceptedPrediction": 0,
                   "rejectedPrediction": 0
                 }
@@ -99,9 +99,9 @@
                     "cf-ray": "[REDACTED]",
                     "connection": "keep-alive",
                     "content-type": "application/json",
-                    "date": "Thu, 25 Jun 2026 22:05:11 GMT",
+                    "date": "Fri, 26 Jun 2026 00:54:04 GMT",
                     "openai-organization": "[REDACTED]",
-                    "openai-processing-ms": "14143",
+                    "openai-processing-ms": "10387",
                     "openai-project": "[REDACTED]",
                     "openai-version": "[REDACTED]",
                     "server": "cloudflare",
@@ -119,13 +119,13 @@
                     "x-request-id": "[REDACTED]"
                   }
                 },
-                "renderedGradingPrompt": "[{\"role\":\"system\",\"content\":\"You are grading output according to a user-specified rubric. If the statement in the rubric is true, then the output passes the test. You respond with a JSON object with this structure: {reason: string, pass: boolean, score: number}\\n\\nExamples:\\n\\n<Output>Hello world</Output>\\n<Rubric>Content contains a greeting</Rubric>\\n{\\\"reason\\\": \\\"the content contains the word 'Hello'\\\", \\\"pass\\\": true, \\\"score\\\": 1.0}\\n\\n<Output>Avast ye swabs, repel the invaders!</Output>\\n<Rubric>Does not speak like a pirate</Rubric>\\n{\\\"reason\\\": \\\"'avast ye' is a common pirate term\\\", \\\"pass\\\": false, \\\"score\\\": 0.0}\"},{\"role\":\"user\",\"content\":\"<Output>\\n## Análise de Causa-Raiz — Cerebro\\n\\n### Linha de base\\n- **Horário esperado de término do reindex job**: 03:30 UTC (início às 02:00 com duração média de 90 minutos).\\n- **Heap disponível total**: 8 GB.\\n- **Latência de busca e cache hit no início da janela (08:00)**: \\n  - Latência de busca (search_p99): 850 ms.\\n  - Cache hit ratio: 74%.\\n\\n### Anormalidade principal\\nEntre 08:00 e 10:00, observou-se uma degradação significativa no sistema:\\n- A **vazão de indexação** (indexed_docs_per_s) aumentou de 4200 para 12400, indicando um aumento na carga de trabalho.\\n- O **heap** utilizado cresceu de 61% para 94%, indicando pressão de memória.\\n- A **latência de busca** (search_p99) escalou de 850 ms para 6700 ms, um aumento drástico.\\n- O **cache hit ratio** caiu de 74% para 29%, indicando que a eficiência do cache foi severamente comprometida.\\n\\nO reindex job começou às 02:00 e, às 08:00, estava em 38% de conclusão, às 09:00 em 40% e, às 10:00, ainda estava em 41%. Isso indica que o reindex job estava **atrasado** em relação ao tempo esperado, já que deveria ter terminado por volta das 03:30.\\n\\n### Cadeia causal\\nCAUSA RAIZ: O reindex job não concluiu no prazo esperado, consumindo heap continuamente por horas extras.\\n  ├── CAUSA IMEDIATA 1: O reindex job estava atrasado, consumindo recursos de heap e causando pressão de memória.\\n  │     └── CONSEQUÊNCIA: Aumento do heap utilizado, resultando em GC (Garbage Collection) frequente e prolongado.\\n  ├── CAUSA IMEDIATA 2: A configuração do cluster estava subdimensionada para o volume atual de dados (heap de 8 GB, 12 shards, 1 réplica).\\n  │     └── CONSEQUÊNCIA: Write thread pool enchendo, resultando em rejeição de requisições de bulk (EsRejectedExecutionException).\\n  ├── CAUSA IMEDIATA 3: A pressão de memória levou ao disparo do circuit breaker.\\n  │     └── CONSEQUÊNCIA: Cache hit ratio caiu de 74% para 29%, resultando em buscas lentas e parciais (11/12 shards).\\n  └── CAUSA IMEDIATA 4: Aumento da latência de busca (search_p99) de 850 ms para 6700 ms.\\n  \\n### Ações imediatas (plantão)\\n1. **Pausar o reindex job** para evitar mais consumo de recursos e liberar heap.\\n2. **Aumentar o heap** para 12 GB e ajustar a configuração do cluster para suportar a carga atual.\\n\\n### Ações estruturais (pós-incidente)\\n1. **Revisar e ajustar a configuração do reindex job**, aumentando o `avg_duration_min` e ajustando o `schedule` para horários de menor carga.\\n2. **Monitorar e ajustar limites de heap e shards** para garantir que o cluster possa lidar com o volume de dados atual, considerando a adição de mais nós se necessário.\\n\\n### Honestidade epistêmica\\n- Temos logs de apenas 1 nó (cerebro-node-3); não temos informações sobre o estado dos outros nós do cluster.\\n- Não sabemos se o reindex job falhou (erro) ou apenas está lento (subdimensionado).\\n- Não temos métricas de CPU ou IO para descartar contenção de recursos.\\n- Não temos dados de consultas externas (clientes buscando mais que o normal) que poderiam ter contribuído para a carga adicional.\\n</Output>\\n<Rubric>\\nAvalie a saída do prompt de causa-raiz nos 4 critérios abaixo.\\nPara cada critério, atribua uma nota de 0 a 2:\\n0 = não atende, 1 = atende parcialmente, 2 = atende completamente.\\n\\n## Critério 1 — Causa-raiz correta (0-2)\\nA saída aponta a causa raiz REAL: o reindex job (scheduled 02:00, duração esperada 90min)\\nNÃO CONCLUIU até as 10:00 (estava em 41% — apenas 4.1M de 10M docs), continuou consumindo\\nheap da JVM por ~8h extras, saturando o sistema.\\nOu a saída trata isso como apenas \\\"sobrecarga\\\" ou \\\"aumento de vazão\\\" sem conectar ao\\nreindex travado?\\nNota 0: Não menciona o reindex job como causa raiz, ou atribui a causa a fatores genéricos\\n(\\\"sobrecarga\\\", \\\"pico de tráfego\\\").\\nNota 1: Menciona o reindex job mas não destaca que ele DEVERIA ter terminado às 03:30 e\\nainda estava rodando às 10:00 (6.5h de atraso), ou não conecta isso à saturação do heap.\\nNota 2: Aponta explicitamente: reindex job travado/incompleto como causa raiz, conectando:\\nreindex não concluiu → consumo contínuo de heap por horas → GC pressure → circuit breaker →\\nbuscas lentas/parciais → cache eviction.\\n\\n## Critério 2 — Correlação × causa (0-2)\\nA saída separa corretamente o que é CAUSA do que é CONSEQUÊNCIA?\\nCausas reais: reindex travado, configuração de heap subdimensionada para o volume.\\nConsequências: aumento de indexed_docs_per_s, heap alto, GC pressure, circuit breaker,\\nbuscas lentas, cache hit baixo, buscas parciais.\\nNota 0: Trata consequências (heap alto, cache baixo, buscas lentas) como causas equivalentes.\\nNota 1: Mistura causa e efeito em alguns pontos (ex.: \\\"aumento na vazão de indexação\\\" listado\\ncomo causa quando é efeito do reindex ainda rodando).\\nNota 2: Hierarquia causal clara: reindex travado → heap saturado → circuit breaker →\\ndegradação em cascata. Consequências identificadas como tal.\\n\\n## Critério 3 — Ação proporcional (0-2)\\nA saída propõe ações COERENTES com o diagnóstico, sem sobre nem subdimensionar?\\nAções corretas: (1) conter/pausar o reindex job imediatamente, (2) reagendar para fora do\\nhorário comercial, (3) revisar avg_duration_min (subestimado: 90min real vs 8h+), (4)\\nconsiderar throttle de indexação ou aumentar heap.\\nAções genéricas ou desproporcionais: \\\"aumentar o cluster\\\", \\\"reiniciar o nó\\\", \\\"comprar mais\\nhardware\\\", \\\"revisar configuração\\\" sem especificar o quê.\\nNota 0: Ação ausente, genérica (\\\"revisar\\\") ou desproporcional (\\\"aumentar tudo\\\").\\nNota 1: Ação razoável mas vaga (\\\"interromper reindex e aumentar heap\\\") sem especificar\\ncomo ou por quê.\\nNota 2: Ação precisa: pausar reindex job, reagendar, revisar schedule/avg_duration,\\nconsiderar throttle ou aumento de heap com justificativa.\\n\\n## Critério 4 — Honestidade epistêmica (0-2)\\nA saída reconhece o que os dados NÃO permitem concluir?\\nLimitações reais: (a) só temos logs do cerebro-node-3 — não sabemos o estado dos outros nós,\\n(b) não sabemos se o reindex job falhou (erro) ou apenas está lento (subdimensionado),\\n(c) não temos métricas de CPU ou IO para descartar contenção de recursos,\\n(d) não temos dados de consultas externas (clientes buscando mais que o normal?).\\nNota 0: Fabrica certeza (\\\"a causa é X\\\") sem reconhecer limitações.\\nNota 1: Menciona uma limitação genérica (\\\"não temos todos os dados\\\") sem especificar quais.\\nNota 2: Lista explicitamente as limitações específicas dos artefatos disponíveis.\\n\\n## Cálculo da nota final\\nSome as notas dos 4 critérios (total 0-8).\\nCritério de aprovação: nota total >= 6 E nenhum critério com nota 0.\\nSe nota total < 6 OU qualquer critério = 0, a saída é REPROVADA.\\n\\n</Rubric>\"}]"
+                "renderedGradingPrompt": "[{\"role\":\"system\",\"content\":\"You are grading output according to a user-specified rubric. If the statement in the rubric is true, then the output passes the test. You respond with a JSON object with this structure: {reason: string, pass: boolean, score: number}\\n\\nExamples:\\n\\n<Output>Hello world</Output>\\n<Rubric>Content contains a greeting</Rubric>\\n{\\\"reason\\\": \\\"the content contains the word 'Hello'\\\", \\\"pass\\\": true, \\\"score\\\": 1.0}\\n\\n<Output>Avast ye swabs, repel the invaders!</Output>\\n<Rubric>Does not speak like a pirate</Rubric>\\n{\\\"reason\\\": \\\"'avast ye' is a common pirate term\\\", \\\"pass\\\": false, \\\"score\\\": 0.0}\"},{\"role\":\"user\",\"content\":\"<Output>\\n## Análise de Causa-Raiz — Cerebro\\n\\n### Linha de base\\n- **Horário esperado de término do reindex job**: O reindex job está agendado para começar às 02:00 e tem uma duração média esperada de 90 minutos, portanto, deveria terminar por volta das 03:30.\\n- **Heap disponível total**: O heap total disponível é de 8 GB.\\n- **Latência de busca e cache hit no início da janela (08:00)**: \\n  - Latência de busca (search_p99): 850 ms\\n  - Cache hit ratio: 74%\\n\\n### Anormalidade principal\\nEntre 08:00 e 10:00, observamos as seguintes mudanças:\\n- **Vazão de indexação (indexed_docs_per_s)**: Aumentou de 4200 para 12400 docs/s, o que indica um aumento significativo na carga de indexação.\\n- **Heap**: O uso de heap cresceu de 61% (4.9 GB) para 94% (7.4 GB), indicando pressão crescente sobre a memória.\\n- **Latência de busca (search_p99)**: A latência aumentou de 850 ms para 6700 ms, mostrando uma degradação significativa na performance de busca.\\n- **Cache hit ratio**: Caiu de 74% para 29%, indicando que a eficiência do cache foi severamente afetada.\\n\\n**Crucial**: O reindex job começou às 02:00 e, às 08:00, estava em 38% de conclusão, às 09:00 em 40% e às 10:00 em 41%. Ele deveria ter terminado por volta das 03:30, portanto, está atrasado em mais de 4 horas.\\n\\n### Cadeia causal\\nCAUSA RAIZ: O reindex job não concluiu no prazo esperado, consumindo heap continuamente por horas extras.\\n  ├── CAUSA IMEDIATA 1: O reindex job está subdimensionado para o volume atual de dados (8 GB de heap, 12 shards, 1 réplica).\\n  │     └── CONSEQUÊNCIA: Aumento da pressão de memória, resultando em GC frequente e aumento do uso de heap.\\n  ├── CAUSA IMEDIATA 2: O aumento na vazão de indexação (de 4200 para 12400 docs/s) devido ao reindex job em execução.\\n  │     └── CONSEQUÊNCIA: Write thread pool enchendo, resultando em rejeição de requisições de bulk.\\n  ├── CAUSA IMEDIATA 3: A pressão de memória e o uso elevado de heap levaram ao disparo do circuit breaker.\\n  │     └── CONSEQUÊNCIA: Cache hit ratio caiu de 74% para 29%, resultando em buscas lentas e parciais.\\n  └── CAUSA IMEDIATA 4: A latência de busca (search_p99) aumentou de 850 ms para 6700 ms.\\n      └── CONSEQUÊNCIA: Buscas parciais (11/12 shards) e degradação geral do serviço.\\n\\n### Ações imediatas (plantão)\\n1. **Pausar o reindex job** para evitar mais pressão sobre o heap e o sistema.\\n2. **Aumentar o heap** para 16 GB, se possível, para aliviar a pressão de memória e permitir que o sistema se estabilize.\\n\\n### Ações estruturais (pós-incidente)\\n1. **Ajustar a configuração do reindex job**: Reavaliar o schedule e a duração média esperada, considerando o volume atual de dados.\\n2. **Aumentar o heap** permanentemente para 16 GB e considerar a adição de mais nós ou shards para melhor distribuição da carga.\\n\\n### Honestidade epistêmica\\n- Temos logs de apenas 1 nó (cerebro-node-3). Não sabemos se os outros nós estão enfrentando problemas semelhantes.\\n- Não sabemos se o reindex job falhou (erro) ou apenas está lento (subdimensionado).\\n- Não temos métricas de CPU ou IO para descartar contenção de recursos.\\n- Não temos dados de consultas externas (clientes buscando mais que o normal), o que poderia ter contribuído para a carga elevada.\\n</Output>\\n<Rubric>\\nAvalie a saída do prompt de causa-raiz nos 4 critérios abaixo.\\nPara cada critério, atribua uma nota de 0 a 2:\\n0 = não atende, 1 = atende parcialmente, 2 = atende completamente.\\n\\n## Critério 1 — Causa-raiz correta (0-2)\\nA saída aponta a causa raiz REAL: o reindex job (scheduled 02:00, duração esperada 90min)\\nNÃO CONCLUIU até as 10:00 (estava em 41% — apenas 4.1M de 10M docs), continuou consumindo\\nheap da JVM por ~8h extras, saturando o sistema.\\nOu a saída trata isso como apenas \\\"sobrecarga\\\" ou \\\"aumento de vazão\\\" sem conectar ao\\nreindex travado?\\nNota 0: Não menciona o reindex job como causa raiz, ou atribui a causa a fatores genéricos\\n(\\\"sobrecarga\\\", \\\"pico de tráfego\\\").\\nNota 1: Menciona o reindex job mas não destaca que ele DEVERIA ter terminado às 03:30 e\\nainda estava rodando às 10:00 (6.5h de atraso), ou não conecta isso à saturação do heap.\\nNota 2: Aponta explicitamente: reindex job travado/incompleto como causa raiz, conectando:\\nreindex não concluiu → consumo contínuo de heap por horas → GC pressure → circuit breaker →\\nbuscas lentas/parciais → cache eviction.\\n\\n## Critério 2 — Correlação × causa (0-2)\\nA saída separa corretamente o que é CAUSA do que é CONSEQUÊNCIA?\\nCausas reais: reindex travado, configuração de heap subdimensionada para o volume.\\nConsequências: aumento de indexed_docs_per_s, heap alto, GC pressure, circuit breaker,\\nbuscas lentas, cache hit baixo, buscas parciais.\\nNota 0: Trata consequências (heap alto, cache baixo, buscas lentas) como causas equivalentes.\\nNota 1: Mistura causa e efeito em alguns pontos (ex.: \\\"aumento na vazão de indexação\\\" listado\\ncomo causa quando é efeito do reindex ainda rodando).\\nNota 2: Hierarquia causal clara: reindex travado → heap saturado → circuit breaker →\\ndegradação em cascata. Consequências identificadas como tal.\\n\\n## Critério 3 — Ação proporcional (0-2)\\nA saída propõe ações COERENTES com o diagnóstico, sem sobre nem subdimensionar?\\nAções corretas: (1) conter/pausar o reindex job imediatamente, (2) reagendar para fora do\\nhorário comercial, (3) revisar avg_duration_min (subestimado: 90min real vs 8h+), (4)\\nconsiderar throttle de indexação ou aumentar heap.\\nAções genéricas ou desproporcionais: \\\"aumentar o cluster\\\", \\\"reiniciar o nó\\\", \\\"comprar mais\\nhardware\\\", \\\"revisar configuração\\\" sem especificar o quê.\\nNota 0: Ação ausente, genérica (\\\"revisar\\\") ou desproporcional (\\\"aumentar tudo\\\").\\nNota 1: Ação razoável mas vaga (\\\"interromper reindex e aumentar heap\\\") sem especificar\\ncomo ou por quê.\\nNota 2: Ação precisa: pausar reindex job, reagendar, revisar schedule/avg_duration,\\nconsiderar throttle ou aumento de heap com justificativa.\\n\\n## Critério 4 — Honestidade epistêmica (0-2)\\nA saída reconhece o que os dados NÃO permitem concluir?\\nLimitações reais: (a) só temos logs do cerebro-node-3 — não sabemos o estado dos outros nós,\\n(b) não sabemos se o reindex job falhou (erro) ou apenas está lento (subdimensionado),\\n(c) não temos métricas de CPU ou IO para descartar contenção de recursos,\\n(d) não temos dados de consultas externas (clientes buscando mais que o normal?).\\nNota 0: Fabrica certeza (\\\"a causa é X\\\") sem reconhecer limitações.\\nNota 1: Menciona uma limitação genérica (\\\"não temos todos os dados\\\") sem especificar quais.\\nNota 2: Lista explicitamente as limitações específicas dos artefatos disponíveis.\\n\\n## Cálculo da nota final\\nSome as notas dos 4 critérios (total 0-8).\\nCritério de aprovação: nota total >= 6 E nenhum critério com nota 0.\\nSe nota total < 6 OU qualquer critério = 0, a saída é REPROVADA.\\n\\n</Rubric>\"}]"
               }
             }
           ]
         },
-        "id": "19d0d41b-505a-43ce-810d-a02b2f48f109",
-        "latencyMs": 12901,
+        "id": "87a0819c-186d-48a0-8e20-e827f1f77cc4",
+        "latencyMs": 13738,
         "namedScores": {},
         "prompt": {
           "raw": "---\r\nnome: \"Análise de Causa-Raiz — Cerebro\"\r\ndescricao: \"A partir de um pacote de 3 artefatos (configuração, métricas e logs do Elasticsearch), realiza análise de causa-raiz de degradação no sistema de indexação e busca Cerebro.\"\r\nversao: \"1.3.0\"\r\ntags:\r\n  - causa-raiz\r\n  - elasticsearch\r\n  - observabilidade\r\n  - sre\r\n  - aegis\r\n  - cerebro\r\n  - incident-response\r\ninputs:\r\n  - nome: artefato_config\r\n    descricao: \"Configuração do cluster Elasticsearch do Cerebro (cerebro.yaml): shards, replicas, jvm_heap, refresh_interval, reindex_job schedule e query_cache\"\r\n  - nome: artefato_metricas\r\n    descricao: \"Métricas do Cerebro nas últimas 2 horas (search_p99_ms, indexed_docs_per_s, heap_used_pct, cache_hit_pct) em intervalos de 30min\"\r\n  - nome: artefato_logs\r\n    descricao: \"Logs nativos do Elasticsearch do nó cerebro-node-3 cobrindo a janela do problema (08:00 às 10:00 UTC)\"\r\n---\r\n\r\n# Prompt: Análise de Causa-Raiz — Cerebro (Aegis)\r\n\r\nVocê é um SRE sênior da Aegis especializado em sistemas de indexação e busca. Recebeu um pacote de artefatos sobre uma degradação no Cerebro (motor Elasticsearch). Sua tarefa é realizar uma análise de causa-raiz cruzando as três fontes de dados abaixo.\r\n\r\n## Artefatos de entrada\r\n\r\n### Artefato 1 — Configuração do cluster (cerebro.yaml)\r\n\r\n```\r\n# cerebro.yaml — configuração do cluster Elasticsearch (repositório de infra)\ncerebro:\n  shards: 12\n  replicas_per_shard: 1\n  jvm_heap: 8g\n  refresh_interval: 1s\n  reindex_job:\n    schedule: \"0 2 * * *\"     # roda todo dia às 02:00\n    avg_duration_min: 90      # normalmente termina ~03:30\n  query_cache:\n    enabled: true\n    size_mb: 512\r\n```\r\n\r\n### Artefato 2 — Métricas do Cerebro (últimas 2 horas)\r\n\r\n```\r\ntimestamp              search_p99_ms   indexed_docs_per_s   heap_used_pct   cache_hit_pct\n2026-05-13 08:00 UTC   850             4200                 61              74\n2026-05-13 08:30 UTC   1100            4100                 68              71\n2026-05-13 09:00 UTC   2300            9800                 79              58\n2026-05-13 09:30 UTC   4100            11200                88              41\n2026-05-13 10:00 UTC   6700            12400                94              29\r\n```\r\n\r\n### Artefato 3 — Logs do nó cerebro-node-3 (janela do problema)\r\n\r\n```\r\n[2026-05-13T08:02:11,540][INFO ][o.e.t.LoggingTaskListener              ][cerebro-node-3] reindex task [88123] (scheduled 02:00) progress, created [3.8M]/[10M] docs (38%)\n[2026-05-13T08:14:33,019][WARN ][o.e.m.j.JvmGcMonitorService            ][cerebro-node-3] [gc][young] duration [620ms], collections [1] in [10s], heap [4.9gb]->[3.1gb]/[8gb]\n[2026-05-13T08:41:07,222][INFO ][o.e.i.IndexingMemoryController         ][cerebro-node-3] now throttling indexing for shard [logs-2026.05][7]: segment writing can't keep up\n[2026-05-13T09:03:55,810][WARN ][o.e.t.ThreadPool                       ][cerebro-node-3] write thread pool queue at [150/200]\n[2026-05-13T09:12:48,402][WARN ][o.e.m.j.JvmGcMonitorService            ][cerebro-node-3] [gc][old] duration [1.1s], collections [2] in [60s], heap [6.3gb]->[5.9gb]/[8gb]\n[2026-05-13T09:20:02,118][INFO ][o.e.t.LoggingTaskListener              ][cerebro-node-3] reindex task [88123] (scheduled 02:00) progress, created [4.0M]/[10M] docs (40%)\n[2026-05-13T09:31:17,653][WARN ][o.e.i.b.HierarchyCircuitBreakerService ][cerebro-node-3] [parent] usage [6.9gb/8gb] (86%), approaching limit\n[2026-05-13T09:44:29,901][WARN ][o.e.s.SearchService                    ][cerebro-node-3] slow query on shard [logs-2026.05][7] took [2380ms]\n[2026-05-13T09:51:08,377][WARN ][o.e.t.ThreadPool                       ][cerebro-node-3] write thread pool queue at [188/200]\n[2026-05-13T09:58:41,102][WARN ][o.e.t.ThreadPool                       ][cerebro-node-3] write thread pool queue full [200/200], rejecting bulk — EsRejectedExecutionException\n[2026-05-13T09:58:43,210][WARN ][o.e.m.j.JvmGcMonitorService            ][cerebro-node-3] [gc][old] duration [1.8s], collections [4] in [60s], heap [7.6gb]->[7.4gb]/[8gb]\n[2026-05-13T09:58:44,005][INFO ][o.e.t.LoggingTaskListener              ][cerebro-node-3] reindex task [88123] (scheduled 02:00) still running, created [4.1M]/[10M] docs (41%), ETA unknown\n[2026-05-13T09:58:45,889][WARN ][o.e.i.IndexingMemoryController         ][cerebro-node-3] indexing buffer above limit, throttling shard [logs-2026.05][7]\n[2026-05-13T09:58:46,330][DEBUG][o.e.s.query.QueryPhase                 ][cerebro-node-3] shard [logs-2026.05][7] search took [5031ms] (timeout [5000ms])\n[2026-05-13T09:58:46,512][ERROR][o.e.s.SearchService                    ][cerebro-node-3] search returned partial results: 11/12 shards succeeded\n[2026-05-13T09:58:46,701][WARN ][o.e.i.b.HierarchyCircuitBreakerService ][cerebro-node-3] [parent] circuit breaker tripped, usage [7.7gb/8gb] (96%) over limit\n[2026-05-13T09:58:47,001][WARN ][o.e.i.cache.query.IndicesQueryCache    ][cerebro-node-3] query cache eviction rate spiking, hit_ratio dropped to 0.29\n[2026-05-13T10:01:12,778][ERROR][o.e.s.SearchService                    ][cerebro-node-3] CircuitBreakingException: [parent] Data too large, would be [7.9gb/8gb]\n[2026-05-13T10:03:39,255][WARN ][o.e.t.ThreadPool                       ][cerebro-node-3] write thread pool rejected [1284] bulk requests in last 5min\n[2026-05-13T10:05:50,640][ERROR][o.e.s.SearchService                    ][cerebro-node-3] all shards failed for index [logs-2026.05] on 3 of last 20 queries\r\n```\r\n\r\n## Instruções de análise\r\n\r\nSiga o raciocínio abaixo em ordem. Não pule etapas.\r\n\r\n### Passo 1 — Estabeleça a linha de base\r\n\r\nAnalise a configuração e as métricas iniciais para entender o estado normal do sistema:\r\n- Qual o horário **esperado** de término do reindex job (schedule + avg_duration_min)?\r\n- Qual o heap disponível total?\r\n- Qual a latência de busca e cache hit no início da janela (08:00)?\r\n\r\n### Passo 2 — Identifique a anormalidade principal\r\n\r\nExamine as métricas ao longo do tempo. O que muda entre 08:00 e 10:00?\r\n- A vazão de indexação (indexed_docs_per_s) aumenta? Quanto e por quê?\r\n- O heap cresce ou se mantém?\r\n- A latência de busca (search_p99) escala? Em quanto?\r\n- O cache hit ratio cai? Para quanto?\r\n\r\n**Crucial**: cruze as métricas com os logs. O reindex job começou às 02:00 com duração esperada de 90min (terminaria ~03:30). Verifique nos logs em que porcentagem ele está às 08:00, 09:00 e 10:00. Ele já deveria ter terminado? Está atrasado? Quanto?\r\n\r\n### Passo 3 — Construa a cadeia causal\r\n\r\nPara cada fenômeno observado, classifique como **CAUSA** ou **CONSEQUÊNCIA**:\r\n\r\n**Causas reais** (o que iniciou a degradação):\r\n- Reindex job não concluiu no prazo esperado → consumiu heap continuamente por horas extras\r\n- Configuração subdimensionada para o volume atual (heap 8g, 12 shards, 1 réplica)\r\n\r\n**Consequências** (o que aconteceu POR CAUSA das causas acima):\r\n- Aumento de indexed_docs_per_s (reindex ainda rodando)\r\n- Heap subindo (GC pressure, old GC)\r\n- Write thread pool enchendo → bulks rejeitados\r\n- Circuit breaker disparando\r\n- Buscas lentas (search_p99 subindo)\r\n- Cache hit caindo (eviction por pressão de memória)\r\n- Buscas parciais (11/12 shards)\r\n\r\nConstrua a cadeia no formato:\r\n\r\n```\r\nCAUSA RAIZ: <qual é>\r\n  ├── CAUSA IMEDIATA 1: <explicação>\r\n  │     └── CONSEQUÊNCIA: <sintoma observado>\r\n  ├── CAUSA IMEDIATA 2: <explicação>\r\n  │     └── CONSEQUÊNCIA: <sintoma observado>\r\n  └── ...\r\n```\r\n\r\n**IMPORTANTE**: Não liste consequências como se fossem causas independentes. Exemplo correto: \"cache hit caiu de 74% para 29%\" é CONSEQUÊNCIA do circuit breaker e da pressão de memória, não uma causa separada.\r\n\r\n### Passo 4 — Conclua com ações\r\n\r\nEntregue uma conclusão que responda:\r\n\r\n1. **Causa raiz**: qual é, em uma frase\r\n2. **Cadeia completa**: causa raiz → causas imediatas → consequências observadas\r\n3. **Ações imediatas** (o plantão executa agora):\r\n   - Seja específico: pausar o quê? Reagendar para quando? Aumentar o quê e para quanto?\r\n4. **Ações estruturais** (pós-incidente):\r\n   - Ajuste de configuração: schedule do reindex, avg_duration_min, heap, limites\r\n   - Monitoramento: quais métricas deveriam ter alertado antes?\r\n\r\n### Passo 5 — Honestidade epistêmica\r\n\r\nListe explicitamente o que os dados **NÃO** permitem concluir:\r\n- Temos logs de apenas 1 nó (cerebro-node-3)? E os outros nós?\r\n- Sabemos se o reindex job falhou (erro) ou apenas está lento (subdimensionado)?\r\n- Temos métricas de CPU ou IO para descartar contenção de recursos?\r\n- Temos dados de consultas externas (clientes buscando mais que o normal)?\r\n\r\nSe houver dados sensíveis (nomes de índices, IPs internos), aponte-os. Se os dados forem insuficientes para concluir algo, reconheça isso — não fabrique certeza.\r\n\r\n## Formato de saída\r\n\r\n```\r\n## Análise de Causa-Raiz — Cerebro\r\n\r\n### Linha de base\r\n<configuração normal do sistema>\r\n\r\n### Anormalidade principal\r\n<o que disparou a degradação — destaque o atraso do reindex>\r\n\r\n### Cadeia causal\r\nCAUSA RAIZ: <qual é>\r\n  ├── CAUSA IMEDIATA 1: <explicação>\r\n  │     └── CONSEQUÊNCIA: <sintoma>\r\n  ├── CAUSA IMEDIATA 2: <explicação>\r\n  │     └── CONSEQUÊNCIA: <sintoma>\r\n  └── ...\r\n\r\n### Ações imediatas (plantão)\r\n1. <ação específica e executável agora>\r\n2. <ação específica e executável agora>\r\n\r\n### Ações estruturais (pós-incidente)\r\n1. <mudança permanente>\r\n2. <mudança permanente>\r\n\r\n### Honestidade epistêmica\r\n<limitações específicas dos dados disponíveis>\r\n```\r\n```\r\n\r\n---\r\n",
@@ -139,22 +139,23 @@
           "label": ""
         },
         "response": {
-          "output": "## Análise de Causa-Raiz — Cerebro\n\n### Linha de base\n- **Horário esperado de término do reindex job**: 03:30 UTC (início às 02:00 com duração média de 90 minutos).\n- **Heap disponível total**: 8 GB.\n- **Latência de busca e cache hit no início da janela (08:00)**: \n  - Latência de busca (search_p99): 850 ms.\n  - Cache hit ratio: 74%.\n\n### Anormalidade principal\nEntre 08:00 e 10:00, observou-se uma degradação significativa no sistema:\n- A **vazão de indexação** (indexed_docs_per_s) aumentou de 4200 para 12400, indicando um aumento na carga de trabalho.\n- O **heap** utilizado cresceu de 61% para 94%, indicando pressão de memória.\n- A **latência de busca** (search_p99) escalou de 850 ms para 6700 ms, um aumento drástico.\n- O **cache hit ratio** caiu de 74% para 29%, indicando que a eficiência do cache foi severamente comprometida.\n\nO reindex job começou às 02:00 e, às 08:00, estava em 38% de conclusão, às 09:00 em 40% e, às 10:00, ainda estava em 41%. Isso indica que o reindex job estava **atrasado** em relação ao tempo esperado, já que deveria ter terminado por volta das 03:30.\n\n### Cadeia causal\nCAUSA RAIZ: O reindex job não concluiu no prazo esperado, consumindo heap continuamente por horas extras.\n  ├── CAUSA IMEDIATA 1: O reindex job estava atrasado, consumindo recursos de heap e causando pressão de memória.\n  │     └── CONSEQUÊNCIA: Aumento do heap utilizado, resultando em GC (Garbage Collection) frequente e prolongado.\n  ├── CAUSA IMEDIATA 2: A configuração do cluster estava subdimensionada para o volume atual de dados (heap de 8 GB, 12 shards, 1 réplica).\n  │     └── CONSEQUÊNCIA: Write thread pool enchendo, resultando em rejeição de requisições de bulk (EsRejectedExecutionException).\n  ├── CAUSA IMEDIATA 3: A pressão de memória levou ao disparo do circuit breaker.\n  │     └── CONSEQUÊNCIA: Cache hit ratio caiu de 74% para 29%, resultando em buscas lentas e parciais (11/12 shards).\n  └── CAUSA IMEDIATA 4: Aumento da latência de busca (search_p99) de 850 ms para 6700 ms.\n  \n### Ações imediatas (plantão)\n1. **Pausar o reindex job** para evitar mais consumo de recursos e liberar heap.\n2. **Aumentar o heap** para 12 GB e ajustar a configuração do cluster para suportar a carga atual.\n\n### Ações estruturais (pós-incidente)\n1. **Revisar e ajustar a configuração do reindex job**, aumentando o `avg_duration_min` e ajustando o `schedule` para horários de menor carga.\n2. **Monitorar e ajustar limites de heap e shards** para garantir que o cluster possa lidar com o volume de dados atual, considerando a adição de mais nós se necessário.\n\n### Honestidade epistêmica\n- Temos logs de apenas 1 nó (cerebro-node-3); não temos informações sobre o estado dos outros nós do cluster.\n- Não sabemos se o reindex job falhou (erro) ou apenas está lento (subdimensionado).\n- Não temos métricas de CPU ou IO para descartar contenção de recursos.\n- Não temos dados de consultas externas (clientes buscando mais que o normal) que poderiam ter contribuído para a carga adicional.",
+          "output": "## Análise de Causa-Raiz — Cerebro\n\n### Linha de base\n- **Horário esperado de término do reindex job**: O reindex job está agendado para começar às 02:00 e tem uma duração média esperada de 90 minutos, portanto, deveria terminar por volta das 03:30.\n- **Heap disponível total**: O heap total disponível é de 8 GB.\n- **Latência de busca e cache hit no início da janela (08:00)**: \n  - Latência de busca (search_p99): 850 ms\n  - Cache hit ratio: 74%\n\n### Anormalidade principal\nEntre 08:00 e 10:00, observamos as seguintes mudanças:\n- **Vazão de indexação (indexed_docs_per_s)**: Aumentou de 4200 para 12400 docs/s, o que indica um aumento significativo na carga de indexação.\n- **Heap**: O uso de heap cresceu de 61% (4.9 GB) para 94% (7.4 GB), indicando pressão crescente sobre a memória.\n- **Latência de busca (search_p99)**: A latência aumentou de 850 ms para 6700 ms, mostrando uma degradação significativa na performance de busca.\n- **Cache hit ratio**: Caiu de 74% para 29%, indicando que a eficiência do cache foi severamente afetada.\n\n**Crucial**: O reindex job começou às 02:00 e, às 08:00, estava em 38% de conclusão, às 09:00 em 40% e às 10:00 em 41%. Ele deveria ter terminado por volta das 03:30, portanto, está atrasado em mais de 4 horas.\n\n### Cadeia causal\nCAUSA RAIZ: O reindex job não concluiu no prazo esperado, consumindo heap continuamente por horas extras.\n  ├── CAUSA IMEDIATA 1: O reindex job está subdimensionado para o volume atual de dados (8 GB de heap, 12 shards, 1 réplica).\n  │     └── CONSEQUÊNCIA: Aumento da pressão de memória, resultando em GC frequente e aumento do uso de heap.\n  ├── CAUSA IMEDIATA 2: O aumento na vazão de indexação (de 4200 para 12400 docs/s) devido ao reindex job em execução.\n  │     └── CONSEQUÊNCIA: Write thread pool enchendo, resultando em rejeição de requisições de bulk.\n  ├── CAUSA IMEDIATA 3: A pressão de memória e o uso elevado de heap levaram ao disparo do circuit breaker.\n  │     └── CONSEQUÊNCIA: Cache hit ratio caiu de 74% para 29%, resultando em buscas lentas e parciais.\n  └── CAUSA IMEDIATA 4: A latência de busca (search_p99) aumentou de 850 ms para 6700 ms.\n      └── CONSEQUÊNCIA: Buscas parciais (11/12 shards) e degradação geral do serviço.\n\n### Ações imediatas (plantão)\n1. **Pausar o reindex job** para evitar mais pressão sobre o heap e o sistema.\n2. **Aumentar o heap** para 16 GB, se possível, para aliviar a pressão de memória e permitir que o sistema se estabilize.\n\n### Ações estruturais (pós-incidente)\n1. **Ajustar a configuração do reindex job**: Reavaliar o schedule e a duração média esperada, considerando o volume atual de dados.\n2. **Aumentar o heap** permanentemente para 16 GB e considerar a adição de mais nós ou shards para melhor distribuição da carga.\n\n### Honestidade epistêmica\n- Temos logs de apenas 1 nó (cerebro-node-3). Não sabemos se os outros nós estão enfrentando problemas semelhantes.\n- Não sabemos se o reindex job falhou (erro) ou apenas está lento (subdimensionado).\n- Não temos métricas de CPU ou IO para descartar contenção de recursos.\n- Não temos dados de consultas externas (clientes buscando mais que o normal), o que poderia ter contribuído para a carga elevada.",
           "tokenUsage": {
-            "total": 3746,
+            "total": 3821,
             "prompt": 2915,
-            "completion": 831,
+            "completion": 906,
             "numRequests": 1,
             "completionDetails": {
               "reasoning": 0,
               "acceptedPrediction": 0,
-              "rejectedPrediction": 0
+              "rejectedPrediction": 0,
+              "cacheReadInputTokens": 2816
             }
           },
           "cached": false,
-          "latencyMs": 12901,
+          "latencyMs": 13738,
           "finishReason": "stop",
-          "cost": 0.00093585,
+          "cost": 0.00076965,
           "guardrails": {
             "flagged": false
           },
@@ -169,9 +170,9 @@
                 "cf-ray": "[REDACTED]",
                 "connection": "keep-alive",
                 "content-type": "application/json",
-                "date": "Thu, 25 Jun 2026 22:04:57 GMT",
+                "date": "Fri, 26 Jun 2026 00:53:53 GMT",
                 "openai-organization": "[REDACTED]",
-                "openai-processing-ms": "12283",
+                "openai-processing-ms": "13501",
                 "openai-project": "[REDACTED]",
                 "openai-version": "[REDACTED]",
                 "server": "cloudflare",
@@ -191,7 +192,7 @@
             }
           }
         },
-        "score": 0.875,
+        "score": 6,
         "success": true,
         "testCase": {
           "description": "Degradação Cerebro — reindex travado saturando heap",
@@ -212,21 +213,21 @@
         "testIdx": 0,
         "tokenUsage": {
           "prompt": 2915,
-          "completion": 831,
+          "completion": 906,
           "cached": 0,
-          "total": 3746,
+          "total": 3821,
           "numRequests": 1,
           "completionDetails": {
             "reasoning": 0,
             "acceptedPrediction": 0,
             "rejectedPrediction": 0,
-            "cacheReadInputTokens": 0,
+            "cacheReadInputTokens": 2816,
             "cacheCreationInputTokens": 0
           },
           "assertions": {
-            "total": 2730,
-            "prompt": 1976,
-            "completion": 754,
+            "total": 2799,
+            "prompt": 2051,
+            "completion": 748,
             "cached": 0,
             "numRequests": 1,
             "completionDetails": {
@@ -254,9 +255,9 @@
               "cf-ray": "[REDACTED]",
               "connection": "keep-alive",
               "content-type": "application/json",
-              "date": "Thu, 25 Jun 2026 22:04:57 GMT",
+              "date": "Fri, 26 Jun 2026 00:53:53 GMT",
               "openai-organization": "[REDACTED]",
-              "openai-processing-ms": "12283",
+              "openai-processing-ms": "13501",
               "openai-project": "[REDACTED]",
               "openai-version": "[REDACTED]",
               "server": "cloudflare",
@@ -285,21 +286,21 @@
       "errors": 0,
       "tokenUsage": {
         "prompt": 2915,
-        "completion": 831,
+        "completion": 906,
         "cached": 0,
-        "total": 3746,
+        "total": 3821,
         "numRequests": 1,
         "completionDetails": {
           "reasoning": 0,
           "acceptedPrediction": 0,
           "rejectedPrediction": 0,
-          "cacheReadInputTokens": 0,
+          "cacheReadInputTokens": 2816,
           "cacheCreationInputTokens": 0
         },
         "assertions": {
-          "total": 2730,
-          "prompt": 1976,
-          "completion": 754,
+          "total": 2799,
+          "prompt": 2051,
+          "completion": 748,
           "cached": 0,
           "numRequests": 0,
           "completionDetails": {
@@ -311,8 +312,8 @@
           }
         }
       },
-      "durationMs": 27378,
-      "evaluationDurationMs": 27378
+      "durationMs": 24445,
+      "evaluationDurationMs": 24445
     }
   },
   "config": {
@@ -353,8 +354,8 @@
     "nodeVersion": "v24.11.1",
     "platform": "win32",
     "arch": "x64",
-    "exportedAt": "2026-06-25T22:05:11.718Z",
-    "evaluationCreatedAt": "2026-06-25T22:04:44.140Z",
+    "exportedAt": "2026-06-26T00:54:04.393Z",
+    "evaluationCreatedAt": "2026-06-26T00:53:39.657Z",
     "author": "profjuarez2022@gmail.com"
   },
   "vars": [

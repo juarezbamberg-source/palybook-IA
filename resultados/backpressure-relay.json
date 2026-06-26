@@ -1,8 +1,8 @@
 {
-  "evalId": "eval-omS-2026-06-25T22:05:15",
+  "evalId": "eval-hlm-2026-06-26T00:54:09",
   "results": {
     "version": 3,
-    "timestamp": "2026-06-25T22:05:15.762Z",
+    "timestamp": "2026-06-26T00:54:09.223Z",
     "prompts": [
       {
         "raw": "---\r\nnome: \"Estratégia de Backpressure — Relay\"\r\ndescricao: \"A partir do cenário de sobrecarga do Relay (barramento de eventos da Aegis), analisa múltiplas estratégias de backpressure, comparando prós, contras, custo e risco, e recomenda a melhor abordagem.\"\r\nversao: \"1.0.0\"\r\ntags:\r\n  - backpressure\r\n  - relay\r\n  - arquitetura\r\n  - sre\r\n  - aegis\r\n  - observabilidade\r\n  - event-driven\r\ninputs:\r\n  - nome: caracteristicas_relay\r\n    descricao: \"Características atuais do Relay: throughput sustentado, pico observado, retenção da fila e consumidores\"\r\n  - nome: restricoes_time\r\n    descricao: \"Restrições do time: SLA do Sentinel (60s), SLA do Forge (15min), orçamento 8% acima, proibição de perda de telemetry\"\r\n  - nome: caminhos_candidatos\r\n    descricao: \"Lista de estratégias candidatas para análise comparativa\"\r\n---\r\n\r\n# Prompt: Estratégia de Backpressure — Relay (Aegis)\r\n\r\nVocê é um SRE sênior da Aegis responsável por projetar uma estratégia de backpressure para o Relay, o barramento de eventos por onde passa todo o telemetry dos clientes antes de chegar ao Forge (data warehouse) e ao Sentinel (alerting em tempo real).\r\n\r\n## Cenário atual\r\n\r\nO Relay tem as seguintes características:\r\n```\r\n- throughput sustentado: 180k msgs/s\r\n- pico observado no último incidente: 320k msgs/s por 25min\r\n- retenção atual da fila: 4h\r\n- consumidores: Forge (ingestão em lote) e Sentinel (alerting em tempo real)\r\n```\r\n\r\n## Restrições do time\r\n\r\n```\r\n- alerting do Sentinel não pode atrasar mais que 60s (SLA com cliente)\r\n- ingestão do Forge pode atrasar até 15min sem violar SLA\r\n- orçamento de infra do trimestre já está 8% acima do previsto\r\n- perda de telemetry é inaceitável — barramento antigo perdia mensagens sob pico\r\n```\r\n\r\n## Caminhos candidatos na mesa\r\n\r\nAbaixo estão algumas estratégias sendo consideradas. Analise cada uma, mas não se limite a elas — você pode propor combinações ou alternativas.\r\n\r\n1. **Priorização de fila** — dar prioridade ao Sentinel (alerting) na frente do Forge (que pode esperar até 15min)\r\n2. **Dead-letter queue** — guardar mensagens não processadas em fila separada para reprocessar depois\r\n3. **Tenant isolation** — dividir o Relay por cliente, isolando tenants barulhentos\r\n4. **Auto-scaling de consumidores** — aumentar automaticamente o número de consumidores quando a carga sobe\r\n5. **Rate limiting na borda** — limitar a taxa de ingestão por tenant no ponto de entrada\r\n\r\n## Instruções de análise\r\n\r\n### Passo 1 — Analise cada caminho individualmente\r\n\r\nPara cada estratégia candidata, responda:\r\n- **Como funciona**: descrição em 1-2 frases\r\n- **Prós**: pelo menos 2 vantagens\r\n- **Contras**: pelo menos 2 desvantagens\r\n- **Custo estimado**: baixo, médio ou alto (considere o orçamento 8% acima)\r\n- **Risco de perda de telemetry**: sim/não/parcial\r\n- **Complexidade de implementação**: baixa, média ou alta\r\n\r\n### Passo 2 — Compare os caminhos\r\n\r\nConstrua uma matriz de comparação com os critérios abaixo. Identifique claramente os trade-offs:\r\n- Efetividade contra pico de 320k msgs/s\r\n- Impacto no SLA do Sentinel (60s)\r\n- Impacto no SLA do Forge (15min)\r\n- Custo de infraestrutura\r\n- Risco operacional\r\n- Tempo estimado de implementação\r\n\r\n### Passo 3 — Recomende\r\n\r\nCom base na análise, recomende:\r\n1. Qual estratégia (ou combinação) você adota?\r\n2. Por que essa é superior às demais?\r\n3. Quais métricas você monitoraria para validar a decisão?\r\n4. Qual seria o plano de rollback se a estratégia não funcionar?\r\n\r\n## Formato de saída\r\n\r\n```\r\n## Análise de Backpressure — Relay\r\n\r\n### Análise individual dos caminhos\r\n\r\n**1. [Nome da estratégia]**\r\n  Como funciona: ...\r\n  Prós:\r\n    - ...\r\n    - ...\r\n  Contras:\r\n    - ...\r\n    - ...\r\n  Custo estimado: ...\r\n  Risco de perda de telemetry: ...\r\n  Complexidade: ...\r\n\r\n**2. [Nome da estratégia]**\r\n  ...\r\n\r\n### Matriz de comparação\r\n\r\n| Estratégia | Pico 320k | SLA Sentinel | SLA Forge | Custo | Risco | Implementação |\r\n|---|---|---|---|---|---|---|\r\n| ... | ... | ... | ... | ... | ... | ... |\r\n\r\n### Recomendação final\r\n\r\n**Estratégia escolhida:** ...\r\n**Justificativa:** ...\r\n**Métricas de validação:** ...\r\n**Plano de rollback:** ...\r\n```\r\n\r\n## Parâmetros\r\n\r\nO prompt recebe o cenário abaixo. Substitua os placeholders pelos dados reais do incidente.\r\n\r\n### Cenário do Relay\r\n\r\n**Características:**\r\n{{caracteristicas_relay}}\r\n\r\n**Restrições:**\r\n{{restricoes_time}}\r\n\r\n**Caminhos candidatos:**\r\n{{caminhos_candidatos}}\r\n```\r\n",
@@ -10,13 +10,13 @@
         "id": "4258153f41fc19453b7d3710560d5e1bfbe6f8eb085653cc4859a7e14b8d0457",
         "provider": "openai:gpt-4o-mini",
         "metrics": {
-          "score": 4,
+          "score": 5,
           "testPassCount": 1,
           "testFailCount": 0,
           "testErrorCount": 0,
           "assertPassCount": 1,
           "assertFailCount": 0,
-          "totalLatencyMs": 14371,
+          "totalLatencyMs": 16339,
           "tokenUsage": {
             "prompt": 1114,
             "completion": 1024,
@@ -31,9 +31,9 @@
               "cacheCreationInputTokens": 0
             },
             "assertions": {
-              "total": 2081,
+              "total": 2239,
               "prompt": 1545,
-              "completion": 536,
+              "completion": 694,
               "cached": 0,
               "numRequests": 0,
               "completionDetails": {
@@ -57,13 +57,13 @@
         "cost": 0.0007815,
         "gradingResult": {
           "pass": true,
-          "score": 4,
+          "score": 5,
           "reason": "All assertions passed",
           "namedScores": {},
           "tokensUsed": {
-            "total": 2081,
+            "total": 2239,
             "prompt": 1545,
-            "completion": 536,
+            "completion": 694,
             "cached": 0,
             "numRequests": 1
           },
@@ -74,16 +74,16 @@
                 "value": "Avalie a saída nos 3 critérios abaixo (0-2 cada, total 0-6):\n\n## Critério 1 — Comparação de estratégias (0-2)\nA saída compara MÚLTIPLAS estratégias (priorização Sentinel, DLQ, isolamento por tenant, auto-scaling) com prós e contras de cada?\nNota 0: Apresenta apenas uma estratégia sem comparar alternativas.\nNota 1: Menciona alternativas mas não aprofunda prós e contras.\nNota 2: Compara 3+ estratégias com prós, contras e trade-offs explícitos.\n\n## Critério 2 — Raciocínio vs. recomendação (0-2)\nO raciocínio é apresentado ANTES da recomendação, e a recomendação é justificada pelos dados?\nNota 0: Recomendação sem raciocínio ou raciocínio solto sem conclusão.\nNota 1: Raciocínio presente mas superficial, ou recomendação fracamente justificada.\nNota 2: Raciocínio passo a passo que leva a uma recomendação claramente justificada.\n\n## Critério 3 — Aderência às restrições (0-2)\nA recomendação respeita TODAS as restrições (SLA Sentinel 60s, SLA Forge 15min, orçamento 8% acima, sem perda de telemetry)?\nNota 0: Ignora uma ou mais restrições.\nNota 1: Menciona as restrições mas não as usa na decisão.\nNota 2: Cada restrição é explicitamente considerada na recomendação.\n\nCorte: total >= 4. Se total < 4, REPROVADO.\n"
               },
               "pass": true,
-              "score": 4,
-              "reason": "Critério 1: compara 5 estratégias com funcionamento, prós, contras, custo, risco e complexidade, então recebe 2/2. Critério 2: apresenta análise e matriz antes da recomendação, e justifica a escolha de priorização + auto-scaling com base em SLA do Sentinel, resiliência e risco de perda, então recebe 2/2. Critério 3: não considera explicitamente todas as restrições: menciona SLA Sentinel 60s e risco de perda de telemetry, mas não trata claramente o SLA Forge 15min nem o orçamento de até 8% acima; portanto recebe 0/2. Total = 4/6, atingindo o corte.",
+              "score": 5,
+              "reason": "Critério 1: compara 5 estratégias, incluindo priorização, DLQ, isolamento por tenant e auto-scaling, com prós, contras, custos, riscos e uma matriz de trade-offs, então recebe 2/2. Critério 2: apresenta a análise e comparação antes da recomendação, e a escolha de priorização + auto-scaling é justificada com base em SLA, picos e risco de perda, embora sem muita quantificação; ainda assim atende bem, 2/2. Critério 3: menciona SLA Sentinel, SLA Forge, orçamento e perda de telemetry, mas não considera explicitamente os valores das restrições, como 60s, 15min e orçamento de 8%, nem demonstra de forma clara que não haverá perda de telemetry; recebe 1/2. Total: 5/6, acima do corte.",
               "tokensUsed": {
-                "total": 2081,
+                "total": 2239,
                 "prompt": 1545,
-                "completion": 536,
+                "completion": 694,
                 "cached": 0,
                 "numRequests": 1,
                 "completionDetails": {
-                  "reasoning": 364,
+                  "reasoning": 493,
                   "acceptedPrediction": 0,
                   "rejectedPrediction": 0
                 }
@@ -99,9 +99,9 @@
                     "cf-ray": "[REDACTED]",
                     "connection": "keep-alive",
                     "content-type": "application/json",
-                    "date": "Thu, 25 Jun 2026 22:05:41 GMT",
+                    "date": "Fri, 26 Jun 2026 00:54:35 GMT",
                     "openai-organization": "[REDACTED]",
-                    "openai-processing-ms": "10364",
+                    "openai-processing-ms": "9644",
                     "openai-project": "[REDACTED]",
                     "openai-version": "[REDACTED]",
                     "server": "cloudflare",
@@ -119,13 +119,13 @@
                     "x-request-id": "[REDACTED]"
                   }
                 },
-                "renderedGradingPrompt": "[{\"role\":\"system\",\"content\":\"You are grading output according to a user-specified rubric. If the statement in the rubric is true, then the output passes the test. You respond with a JSON object with this structure: {reason: string, pass: boolean, score: number}\\n\\nExamples:\\n\\n<Output>Hello world</Output>\\n<Rubric>Content contains a greeting</Rubric>\\n{\\\"reason\\\": \\\"the content contains the word 'Hello'\\\", \\\"pass\\\": true, \\\"score\\\": 1.0}\\n\\n<Output>Avast ye swabs, repel the invaders!</Output>\\n<Rubric>Does not speak like a pirate</Rubric>\\n{\\\"reason\\\": \\\"'avast ye' is a common pirate term\\\", \\\"pass\\\": false, \\\"score\\\": 0.0}\"},{\"role\":\"user\",\"content\":\"<Output>\\n## Análise de Backpressure — Relay\\n\\n### Análise individual dos caminhos\\n\\n**1. Priorização de fila**\\n  Como funciona: Mensagens destinadas ao Sentinel são processadas antes das mensagens destinadas ao Forge, garantindo que o alerting em tempo real não seja atrasado.\\n  Prós:\\n    - Garante que o SLA do Sentinel (60s) seja respeitado.\\n    - Reduz o risco de perda de mensagens críticas para alertas.\\n  Contras:\\n    - Pode causar atrasos significativos na ingestão do Forge, especialmente em picos.\\n    - Aumenta a complexidade do gerenciamento de filas.\\n  Custo estimado: Médio\\n  Risco de perda de telemetry: Não\\n  Complexidade: Média\\n\\n**2. Dead-letter queue**\\n  Como funciona: Mensagens que não podem ser processadas são movidas para uma fila separada para reprocessamento posterior.\\n  Prós:\\n    - Permite a recuperação de mensagens que falharam no processamento.\\n    - Reduz a perda de dados, mantendo a integridade do sistema.\\n  Contras:\\n    - Introduz latência adicional no processamento, pois as mensagens precisam ser reprocessadas.\\n    - Aumenta a complexidade do sistema com a necessidade de monitoramento e gerenciamento da fila de dead-letter.\\n  Custo estimado: Médio\\n  Risco de perda de telemetry: Parcial\\n  Complexidade: Média\\n\\n**3. Tenant isolation**\\n  Como funciona: O Relay é dividido por cliente, isolando o tráfego de tenants barulhentos para evitar que impactem outros clientes.\\n  Prós:\\n    - Melhora a performance geral ao isolar problemas de tenants específicos.\\n    - Permite uma melhor alocação de recursos para clientes com diferentes necessidades.\\n  Contras:\\n    - Aumenta a complexidade da arquitetura e do gerenciamento de recursos.\\n    - Pode resultar em subutilização de recursos se não for bem dimensionado.\\n  Custo estimado: Alto\\n  Risco de perda de telemetry: Não\\n  Complexidade: Alta\\n\\n**4. Auto-scaling de consumidores**\\n  Como funciona: O número de consumidores é ajustado automaticamente com base na carga de mensagens recebidas.\\n  Prós:\\n    - Responde dinamicamente a picos de carga, melhorando a resiliência.\\n    - Pode reduzir custos operacionais ao escalar para baixo em períodos de baixa carga.\\n  Contras:\\n    - Requer monitoramento e configuração adequados para evitar escalonamento excessivo.\\n    - Pode não ser suficiente em picos extremos se a infraestrutura não suportar a escalabilidade.\\n  Custo estimado: Médio\\n  Risco de perda de telemetry: Não\\n  Complexidade: Média\\n\\n**5. Rate limiting na borda**\\n  Como funciona: Limita a taxa de ingestão de mensagens por tenant no ponto de entrada do Relay.\\n  Prós:\\n    - Previne sobrecarga do sistema ao controlar a quantidade de mensagens processadas.\\n    - Ajuda a manter a performance estável durante picos.\\n  Contras:\\n    - Pode resultar em perda de mensagens se a taxa de limite for muito baixa.\\n    - Pode frustrar clientes que precisam de maior throughput.\\n  Custo estimado: Baixo\\n  Risco de perda de telemetry: Sim\\n  Complexidade: Baixa\\n\\n### Matriz de comparação\\n\\n| Estratégia               | Pico 320k | SLA Sentinel | SLA Forge | Custo | Risco | Implementação |\\n|--------------------------|-----------|--------------|-----------|-------|-------|----------------|\\n| Priorização de fila      | Alta      | Baixo        | Alto      | Médio | Baixo | Média          |\\n| Dead-letter queue        | Média     | Médio        | Médio     | Médio | Parcial| Média          |\\n| Tenant isolation         | Alta      | Alto         | Alto      | Alto  | Baixo | Alta           |\\n| Auto-scaling de consumidores | Alta  | Baixo        | Médio     | Médio | Baixo | Média          |\\n| Rate limiting na borda   | Baixa     | Alto         | Alto      | Baixo | Sim   | Baixa          |\\n\\n### Recomendação final\\n\\n**Estratégia escolhida:** Priorização de fila combinada com auto-scaling de consumidores.\\n\\n**Justificativa:** A priorização de fila garante que o SLA do Sentinel seja respeitado, que é crítico para a operação. A combinação com auto-scaling de consumidores permite que o sistema se adapte a picos de carga, melhorando a resiliência sem comprometer a integridade dos dados. Essa abordagem equilibra a necessidade de alertas em tempo real com a ingestão de dados em lote, minimizando o risco de perda de telemetry.\\n\\n**Métricas de validação:**\\n- Latência média de processamento para o Sentinel e o Forge.\\n- Taxa de mensagens processadas por segundo.\\n- Número de mensagens movidas para a dead-letter queue\\n</Output>\\n<Rubric>\\nAvalie a saída nos 3 critérios abaixo (0-2 cada, total 0-6):\\n\\n## Critério 1 — Comparação de estratégias (0-2)\\nA saída compara MÚLTIPLAS estratégias (priorização Sentinel, DLQ, isolamento por tenant, auto-scaling) com prós e contras de cada?\\nNota 0: Apresenta apenas uma estratégia sem comparar alternativas.\\nNota 1: Menciona alternativas mas não aprofunda prós e contras.\\nNota 2: Compara 3+ estratégias com prós, contras e trade-offs explícitos.\\n\\n## Critério 2 — Raciocínio vs. recomendação (0-2)\\nO raciocínio é apresentado ANTES da recomendação, e a recomendação é justificada pelos dados?\\nNota 0: Recomendação sem raciocínio ou raciocínio solto sem conclusão.\\nNota 1: Raciocínio presente mas superficial, ou recomendação fracamente justificada.\\nNota 2: Raciocínio passo a passo que leva a uma recomendação claramente justificada.\\n\\n## Critério 3 — Aderência às restrições (0-2)\\nA recomendação respeita TODAS as restrições (SLA Sentinel 60s, SLA Forge 15min, orçamento 8% acima, sem perda de telemetry)?\\nNota 0: Ignora uma ou mais restrições.\\nNota 1: Menciona as restrições mas não as usa na decisão.\\nNota 2: Cada restrição é explicitamente considerada na recomendação.\\n\\nCorte: total >= 4. Se total < 4, REPROVADO.\\n\\n</Rubric>\"}]"
+                "renderedGradingPrompt": "[{\"role\":\"system\",\"content\":\"You are grading output according to a user-specified rubric. If the statement in the rubric is true, then the output passes the test. You respond with a JSON object with this structure: {reason: string, pass: boolean, score: number}\\n\\nExamples:\\n\\n<Output>Hello world</Output>\\n<Rubric>Content contains a greeting</Rubric>\\n{\\\"reason\\\": \\\"the content contains the word 'Hello'\\\", \\\"pass\\\": true, \\\"score\\\": 1.0}\\n\\n<Output>Avast ye swabs, repel the invaders!</Output>\\n<Rubric>Does not speak like a pirate</Rubric>\\n{\\\"reason\\\": \\\"'avast ye' is a common pirate term\\\", \\\"pass\\\": false, \\\"score\\\": 0.0}\"},{\"role\":\"user\",\"content\":\"<Output>\\n## Análise de Backpressure — Relay\\n\\n### Análise individual dos caminhos\\n\\n**1. Priorização de fila**\\n  Como funciona: Mensagens destinadas ao Sentinel são processadas antes das mensagens do Forge, garantindo que o alerting em tempo real tenha prioridade.\\n  Prós:\\n    - Reduz o risco de violação do SLA do Sentinel, garantindo alertas em tempo hábil.\\n    - Melhora a experiência do cliente ao priorizar eventos críticos.\\n  Contras:\\n    - Pode causar atrasos significativos na ingestão do Forge, especialmente em picos.\\n    - Aumenta a complexidade do gerenciamento de filas, pois é necessário implementar lógica de priorização.\\n  Custo estimado: Médio\\n  Risco de perda de telemetry: Não\\n  Complexidade: Média\\n\\n**2. Dead-letter queue**\\n  Como funciona: Mensagens que não podem ser processadas são movidas para uma fila separada para reprocessamento posterior.\\n  Prós:\\n    - Garante que nenhuma mensagem seja perdida, permitindo reprocessamento.\\n    - Facilita a identificação de problemas com mensagens específicas.\\n  Contras:\\n    - Aumenta a latência geral, pois mensagens podem ficar retidas na dead-letter queue.\\n    - Necessita de um mecanismo adicional para monitorar e reprocessar mensagens.\\n  Custo estimado: Médio\\n  Risco de perda de telemetry: Não\\n  Complexidade: Média\\n\\n**3. Tenant isolation**\\n  Como funciona: O Relay é dividido por cliente, isolando o tráfego de tenants barulhentos para evitar que impactem outros.\\n  Prós:\\n    - Melhora a performance geral, pois clientes com alta carga não afetam outros.\\n    - Permite ajustes de configuração específicos para cada tenant.\\n  Contras:\\n    - Aumenta a complexidade da arquitetura e do gerenciamento de recursos.\\n    - Pode resultar em subutilização de recursos se alguns tenants não utilizarem toda a capacidade.\\n  Custo estimado: Alto\\n  Risco de perda de telemetry: Não\\n  Complexidade: Alta\\n\\n**4. Auto-scaling de consumidores**\\n  Como funciona: O número de consumidores é ajustado automaticamente com base na carga de mensagens.\\n  Prós:\\n    - Responde rapidamente a picos de carga, melhorando a capacidade de processamento.\\n    - Otimiza o uso de recursos, escalando para cima ou para baixo conforme necessário.\\n  Contras:\\n    - Pode ser difícil prever a capacidade necessária em picos extremos.\\n    - Dependente de uma infraestrutura que suporte auto-scaling, o que pode aumentar custos.\\n  Custo estimado: Médio\\n  Risco de perda de telemetry: Não\\n  Complexidade: Média\\n\\n**5. Rate limiting na borda**\\n  Como funciona: Limita a taxa de ingestão de mensagens por tenant no ponto de entrada do Relay.\\n  Prós:\\n    - Reduz a carga no Relay, evitando picos extremos.\\n    - Garante que todos os tenants tenham uma quantidade justa de recursos.\\n  Contras:\\n    - Pode resultar em perda de mensagens se a taxa de limite for muito baixa.\\n    - Necessita de comunicação clara com os clientes sobre limites de taxa.\\n  Custo estimado: Baixo\\n  Risco de perda de telemetry: Parcial\\n  Complexidade: Baixa\\n\\n### Matriz de comparação\\n\\n| Estratégia               | Pico 320k | SLA Sentinel | SLA Forge | Custo | Risco | Implementação |\\n|--------------------------|-----------|--------------|-----------|-------|-------|---------------|\\n| Priorização de fila      | Baixa     | Baixo        | Alto      | Médio | Baixo | Média         |\\n| Dead-letter queue        | Média     | Médio        | Médio     | Médio | Baixo | Média         |\\n| Tenant isolation         | Alta      | Alto         | Alto      | Alto  | Baixo | Alta          |\\n| Auto-scaling de consumidores | Alta  | Médio        | Médio     | Médio | Baixo | Média         |\\n| Rate limiting na borda   | Média     | Alto         | Baixo     | Baixo | Parcial | Baixa         |\\n\\n### Recomendação final\\n\\n**Estratégia escolhida:** Priorização de fila combinada com auto-scaling de consumidores.\\n\\n**Justificativa:** A priorização de fila garante que o SLA do Sentinel seja respeitado, enquanto o auto-scaling de consumidores permite que o sistema se adapte a picos de carga, mantendo a ingestão do Forge dentro do SLA. Essa combinação minimiza o risco de perda de telemetry e atende às restrições orçamentárias.\\n\\n**Métricas de validação:** \\n- Taxa de processamento de mensagens por segundo.\\n- Latência média de processamento para o Sentinel e o Forge.\\n- Taxa de mensagens na dead-letter queue.\\n- Utilização de recursos de consumidores.\\n\\n**Plano de rollback:** Se a estratégia não funcionar, reverter para a configuração anterior do Relay, desativando\\n</Output>\\n<Rubric>\\nAvalie a saída nos 3 critérios abaixo (0-2 cada, total 0-6):\\n\\n## Critério 1 — Comparação de estratégias (0-2)\\nA saída compara MÚLTIPLAS estratégias (priorização Sentinel, DLQ, isolamento por tenant, auto-scaling) com prós e contras de cada?\\nNota 0: Apresenta apenas uma estratégia sem comparar alternativas.\\nNota 1: Menciona alternativas mas não aprofunda prós e contras.\\nNota 2: Compara 3+ estratégias com prós, contras e trade-offs explícitos.\\n\\n## Critério 2 — Raciocínio vs. recomendação (0-2)\\nO raciocínio é apresentado ANTES da recomendação, e a recomendação é justificada pelos dados?\\nNota 0: Recomendação sem raciocínio ou raciocínio solto sem conclusão.\\nNota 1: Raciocínio presente mas superficial, ou recomendação fracamente justificada.\\nNota 2: Raciocínio passo a passo que leva a uma recomendação claramente justificada.\\n\\n## Critério 3 — Aderência às restrições (0-2)\\nA recomendação respeita TODAS as restrições (SLA Sentinel 60s, SLA Forge 15min, orçamento 8% acima, sem perda de telemetry)?\\nNota 0: Ignora uma ou mais restrições.\\nNota 1: Menciona as restrições mas não as usa na decisão.\\nNota 2: Cada restrição é explicitamente considerada na recomendação.\\n\\nCorte: total >= 4. Se total < 4, REPROVADO.\\n\\n</Rubric>\"}]"
               }
             }
           ]
         },
-        "id": "4412bb02-d58f-46f6-a749-e5f1bfe9a355",
-        "latencyMs": 14371,
+        "id": "71ea2c23-4d09-494b-8359-83b5d0aa8774",
+        "latencyMs": 16339,
         "namedScores": {},
         "prompt": {
           "raw": "---\r\nnome: \"Estratégia de Backpressure — Relay\"\r\ndescricao: \"A partir do cenário de sobrecarga do Relay (barramento de eventos da Aegis), analisa múltiplas estratégias de backpressure, comparando prós, contras, custo e risco, e recomenda a melhor abordagem.\"\r\nversao: \"1.0.0\"\r\ntags:\r\n  - backpressure\r\n  - relay\r\n  - arquitetura\r\n  - sre\r\n  - aegis\r\n  - observabilidade\r\n  - event-driven\r\ninputs:\r\n  - nome: caracteristicas_relay\r\n    descricao: \"Características atuais do Relay: throughput sustentado, pico observado, retenção da fila e consumidores\"\r\n  - nome: restricoes_time\r\n    descricao: \"Restrições do time: SLA do Sentinel (60s), SLA do Forge (15min), orçamento 8% acima, proibição de perda de telemetry\"\r\n  - nome: caminhos_candidatos\r\n    descricao: \"Lista de estratégias candidatas para análise comparativa\"\r\n---\r\n\r\n# Prompt: Estratégia de Backpressure — Relay (Aegis)\r\n\r\nVocê é um SRE sênior da Aegis responsável por projetar uma estratégia de backpressure para o Relay, o barramento de eventos por onde passa todo o telemetry dos clientes antes de chegar ao Forge (data warehouse) e ao Sentinel (alerting em tempo real).\r\n\r\n## Cenário atual\r\n\r\nO Relay tem as seguintes características:\r\n```\r\n- throughput sustentado: 180k msgs/s\r\n- pico observado no último incidente: 320k msgs/s por 25min\r\n- retenção atual da fila: 4h\r\n- consumidores: Forge (ingestão em lote) e Sentinel (alerting em tempo real)\r\n```\r\n\r\n## Restrições do time\r\n\r\n```\r\n- alerting do Sentinel não pode atrasar mais que 60s (SLA com cliente)\r\n- ingestão do Forge pode atrasar até 15min sem violar SLA\r\n- orçamento de infra do trimestre já está 8% acima do previsto\r\n- perda de telemetry é inaceitável — barramento antigo perdia mensagens sob pico\r\n```\r\n\r\n## Caminhos candidatos na mesa\r\n\r\nAbaixo estão algumas estratégias sendo consideradas. Analise cada uma, mas não se limite a elas — você pode propor combinações ou alternativas.\r\n\r\n1. **Priorização de fila** — dar prioridade ao Sentinel (alerting) na frente do Forge (que pode esperar até 15min)\r\n2. **Dead-letter queue** — guardar mensagens não processadas em fila separada para reprocessar depois\r\n3. **Tenant isolation** — dividir o Relay por cliente, isolando tenants barulhentos\r\n4. **Auto-scaling de consumidores** — aumentar automaticamente o número de consumidores quando a carga sobe\r\n5. **Rate limiting na borda** — limitar a taxa de ingestão por tenant no ponto de entrada\r\n\r\n## Instruções de análise\r\n\r\n### Passo 1 — Analise cada caminho individualmente\r\n\r\nPara cada estratégia candidata, responda:\r\n- **Como funciona**: descrição em 1-2 frases\r\n- **Prós**: pelo menos 2 vantagens\r\n- **Contras**: pelo menos 2 desvantagens\r\n- **Custo estimado**: baixo, médio ou alto (considere o orçamento 8% acima)\r\n- **Risco de perda de telemetry**: sim/não/parcial\r\n- **Complexidade de implementação**: baixa, média ou alta\r\n\r\n### Passo 2 — Compare os caminhos\r\n\r\nConstrua uma matriz de comparação com os critérios abaixo. Identifique claramente os trade-offs:\r\n- Efetividade contra pico de 320k msgs/s\r\n- Impacto no SLA do Sentinel (60s)\r\n- Impacto no SLA do Forge (15min)\r\n- Custo de infraestrutura\r\n- Risco operacional\r\n- Tempo estimado de implementação\r\n\r\n### Passo 3 — Recomende\r\n\r\nCom base na análise, recomende:\r\n1. Qual estratégia (ou combinação) você adota?\r\n2. Por que essa é superior às demais?\r\n3. Quais métricas você monitoraria para validar a decisão?\r\n4. Qual seria o plano de rollback se a estratégia não funcionar?\r\n\r\n## Formato de saída\r\n\r\n```\r\n## Análise de Backpressure — Relay\r\n\r\n### Análise individual dos caminhos\r\n\r\n**1. [Nome da estratégia]**\r\n  Como funciona: ...\r\n  Prós:\r\n    - ...\r\n    - ...\r\n  Contras:\r\n    - ...\r\n    - ...\r\n  Custo estimado: ...\r\n  Risco de perda de telemetry: ...\r\n  Complexidade: ...\r\n\r\n**2. [Nome da estratégia]**\r\n  ...\r\n\r\n### Matriz de comparação\r\n\r\n| Estratégia | Pico 320k | SLA Sentinel | SLA Forge | Custo | Risco | Implementação |\r\n|---|---|---|---|---|---|---|\r\n| ... | ... | ... | ... | ... | ... | ... |\r\n\r\n### Recomendação final\r\n\r\n**Estratégia escolhida:** ...\r\n**Justificativa:** ...\r\n**Métricas de validação:** ...\r\n**Plano de rollback:** ...\r\n```\r\n\r\n## Parâmetros\r\n\r\nO prompt recebe o cenário abaixo. Substitua os placeholders pelos dados reais do incidente.\r\n\r\n### Cenário do Relay\r\n\r\n**Características:**\r\n\r\n\r\n**Restrições:**\r\n\r\n\r\n**Caminhos candidatos:**\r\n\r\n```\r\n",
@@ -139,7 +139,7 @@
           "label": ""
         },
         "response": {
-          "output": "## Análise de Backpressure — Relay\n\n### Análise individual dos caminhos\n\n**1. Priorização de fila**\n  Como funciona: Mensagens destinadas ao Sentinel são processadas antes das mensagens destinadas ao Forge, garantindo que o alerting em tempo real não seja atrasado.\n  Prós:\n    - Garante que o SLA do Sentinel (60s) seja respeitado.\n    - Reduz o risco de perda de mensagens críticas para alertas.\n  Contras:\n    - Pode causar atrasos significativos na ingestão do Forge, especialmente em picos.\n    - Aumenta a complexidade do gerenciamento de filas.\n  Custo estimado: Médio\n  Risco de perda de telemetry: Não\n  Complexidade: Média\n\n**2. Dead-letter queue**\n  Como funciona: Mensagens que não podem ser processadas são movidas para uma fila separada para reprocessamento posterior.\n  Prós:\n    - Permite a recuperação de mensagens que falharam no processamento.\n    - Reduz a perda de dados, mantendo a integridade do sistema.\n  Contras:\n    - Introduz latência adicional no processamento, pois as mensagens precisam ser reprocessadas.\n    - Aumenta a complexidade do sistema com a necessidade de monitoramento e gerenciamento da fila de dead-letter.\n  Custo estimado: Médio\n  Risco de perda de telemetry: Parcial\n  Complexidade: Média\n\n**3. Tenant isolation**\n  Como funciona: O Relay é dividido por cliente, isolando o tráfego de tenants barulhentos para evitar que impactem outros clientes.\n  Prós:\n    - Melhora a performance geral ao isolar problemas de tenants específicos.\n    - Permite uma melhor alocação de recursos para clientes com diferentes necessidades.\n  Contras:\n    - Aumenta a complexidade da arquitetura e do gerenciamento de recursos.\n    - Pode resultar em subutilização de recursos se não for bem dimensionado.\n  Custo estimado: Alto\n  Risco de perda de telemetry: Não\n  Complexidade: Alta\n\n**4. Auto-scaling de consumidores**\n  Como funciona: O número de consumidores é ajustado automaticamente com base na carga de mensagens recebidas.\n  Prós:\n    - Responde dinamicamente a picos de carga, melhorando a resiliência.\n    - Pode reduzir custos operacionais ao escalar para baixo em períodos de baixa carga.\n  Contras:\n    - Requer monitoramento e configuração adequados para evitar escalonamento excessivo.\n    - Pode não ser suficiente em picos extremos se a infraestrutura não suportar a escalabilidade.\n  Custo estimado: Médio\n  Risco de perda de telemetry: Não\n  Complexidade: Média\n\n**5. Rate limiting na borda**\n  Como funciona: Limita a taxa de ingestão de mensagens por tenant no ponto de entrada do Relay.\n  Prós:\n    - Previne sobrecarga do sistema ao controlar a quantidade de mensagens processadas.\n    - Ajuda a manter a performance estável durante picos.\n  Contras:\n    - Pode resultar em perda de mensagens se a taxa de limite for muito baixa.\n    - Pode frustrar clientes que precisam de maior throughput.\n  Custo estimado: Baixo\n  Risco de perda de telemetry: Sim\n  Complexidade: Baixa\n\n### Matriz de comparação\n\n| Estratégia               | Pico 320k | SLA Sentinel | SLA Forge | Custo | Risco | Implementação |\n|--------------------------|-----------|--------------|-----------|-------|-------|----------------|\n| Priorização de fila      | Alta      | Baixo        | Alto      | Médio | Baixo | Média          |\n| Dead-letter queue        | Média     | Médio        | Médio     | Médio | Parcial| Média          |\n| Tenant isolation         | Alta      | Alto         | Alto      | Alto  | Baixo | Alta           |\n| Auto-scaling de consumidores | Alta  | Baixo        | Médio     | Médio | Baixo | Média          |\n| Rate limiting na borda   | Baixa     | Alto         | Alto      | Baixo | Sim   | Baixa          |\n\n### Recomendação final\n\n**Estratégia escolhida:** Priorização de fila combinada com auto-scaling de consumidores.\n\n**Justificativa:** A priorização de fila garante que o SLA do Sentinel seja respeitado, que é crítico para a operação. A combinação com auto-scaling de consumidores permite que o sistema se adapte a picos de carga, melhorando a resiliência sem comprometer a integridade dos dados. Essa abordagem equilibra a necessidade de alertas em tempo real com a ingestão de dados em lote, minimizando o risco de perda de telemetry.\n\n**Métricas de validação:**\n- Latência média de processamento para o Sentinel e o Forge.\n- Taxa de mensagens processadas por segundo.\n- Número de mensagens movidas para a dead-letter queue",
+          "output": "## Análise de Backpressure — Relay\n\n### Análise individual dos caminhos\n\n**1. Priorização de fila**\n  Como funciona: Mensagens destinadas ao Sentinel são processadas antes das mensagens do Forge, garantindo que o alerting em tempo real tenha prioridade.\n  Prós:\n    - Reduz o risco de violação do SLA do Sentinel, garantindo alertas em tempo hábil.\n    - Melhora a experiência do cliente ao priorizar eventos críticos.\n  Contras:\n    - Pode causar atrasos significativos na ingestão do Forge, especialmente em picos.\n    - Aumenta a complexidade do gerenciamento de filas, pois é necessário implementar lógica de priorização.\n  Custo estimado: Médio\n  Risco de perda de telemetry: Não\n  Complexidade: Média\n\n**2. Dead-letter queue**\n  Como funciona: Mensagens que não podem ser processadas são movidas para uma fila separada para reprocessamento posterior.\n  Prós:\n    - Garante que nenhuma mensagem seja perdida, permitindo reprocessamento.\n    - Facilita a identificação de problemas com mensagens específicas.\n  Contras:\n    - Aumenta a latência geral, pois mensagens podem ficar retidas na dead-letter queue.\n    - Necessita de um mecanismo adicional para monitorar e reprocessar mensagens.\n  Custo estimado: Médio\n  Risco de perda de telemetry: Não\n  Complexidade: Média\n\n**3. Tenant isolation**\n  Como funciona: O Relay é dividido por cliente, isolando o tráfego de tenants barulhentos para evitar que impactem outros.\n  Prós:\n    - Melhora a performance geral, pois clientes com alta carga não afetam outros.\n    - Permite ajustes de configuração específicos para cada tenant.\n  Contras:\n    - Aumenta a complexidade da arquitetura e do gerenciamento de recursos.\n    - Pode resultar em subutilização de recursos se alguns tenants não utilizarem toda a capacidade.\n  Custo estimado: Alto\n  Risco de perda de telemetry: Não\n  Complexidade: Alta\n\n**4. Auto-scaling de consumidores**\n  Como funciona: O número de consumidores é ajustado automaticamente com base na carga de mensagens.\n  Prós:\n    - Responde rapidamente a picos de carga, melhorando a capacidade de processamento.\n    - Otimiza o uso de recursos, escalando para cima ou para baixo conforme necessário.\n  Contras:\n    - Pode ser difícil prever a capacidade necessária em picos extremos.\n    - Dependente de uma infraestrutura que suporte auto-scaling, o que pode aumentar custos.\n  Custo estimado: Médio\n  Risco de perda de telemetry: Não\n  Complexidade: Média\n\n**5. Rate limiting na borda**\n  Como funciona: Limita a taxa de ingestão de mensagens por tenant no ponto de entrada do Relay.\n  Prós:\n    - Reduz a carga no Relay, evitando picos extremos.\n    - Garante que todos os tenants tenham uma quantidade justa de recursos.\n  Contras:\n    - Pode resultar em perda de mensagens se a taxa de limite for muito baixa.\n    - Necessita de comunicação clara com os clientes sobre limites de taxa.\n  Custo estimado: Baixo\n  Risco de perda de telemetry: Parcial\n  Complexidade: Baixa\n\n### Matriz de comparação\n\n| Estratégia               | Pico 320k | SLA Sentinel | SLA Forge | Custo | Risco | Implementação |\n|--------------------------|-----------|--------------|-----------|-------|-------|---------------|\n| Priorização de fila      | Baixa     | Baixo        | Alto      | Médio | Baixo | Média         |\n| Dead-letter queue        | Média     | Médio        | Médio     | Médio | Baixo | Média         |\n| Tenant isolation         | Alta      | Alto         | Alto      | Alto  | Baixo | Alta          |\n| Auto-scaling de consumidores | Alta  | Médio        | Médio     | Médio | Baixo | Média         |\n| Rate limiting na borda   | Média     | Alto         | Baixo     | Baixo | Parcial | Baixa         |\n\n### Recomendação final\n\n**Estratégia escolhida:** Priorização de fila combinada com auto-scaling de consumidores.\n\n**Justificativa:** A priorização de fila garante que o SLA do Sentinel seja respeitado, enquanto o auto-scaling de consumidores permite que o sistema se adapte a picos de carga, mantendo a ingestão do Forge dentro do SLA. Essa combinação minimiza o risco de perda de telemetry e atende às restrições orçamentárias.\n\n**Métricas de validação:** \n- Taxa de processamento de mensagens por segundo.\n- Latência média de processamento para o Sentinel e o Forge.\n- Taxa de mensagens na dead-letter queue.\n- Utilização de recursos de consumidores.\n\n**Plano de rollback:** Se a estratégia não funcionar, reverter para a configuração anterior do Relay, desativando",
           "tokenUsage": {
             "total": 2138,
             "prompt": 1114,
@@ -152,7 +152,7 @@
             }
           },
           "cached": false,
-          "latencyMs": 14371,
+          "latencyMs": 16339,
           "finishReason": "length",
           "cost": 0.0007815,
           "guardrails": {
@@ -169,9 +169,9 @@
                 "cf-ray": "[REDACTED]",
                 "connection": "keep-alive",
                 "content-type": "application/json",
-                "date": "Thu, 25 Jun 2026 22:05:30 GMT",
+                "date": "Fri, 26 Jun 2026 00:54:25 GMT",
                 "openai-organization": "[REDACTED]",
-                "openai-processing-ms": "13807",
+                "openai-processing-ms": "15834",
                 "openai-project": "[REDACTED]",
                 "openai-version": "[REDACTED]",
                 "server": "cloudflare",
@@ -191,7 +191,7 @@
             }
           }
         },
-        "score": 4,
+        "score": 5,
         "success": true,
         "testCase": {
           "description": "Decisão de backpressure — Relay sobrecarregado",
@@ -222,9 +222,9 @@
             "cacheCreationInputTokens": 0
           },
           "assertions": {
-            "total": 2081,
+            "total": 2239,
             "prompt": 1545,
-            "completion": 536,
+            "completion": 694,
             "cached": 0,
             "numRequests": 1,
             "completionDetails": {
@@ -250,9 +250,9 @@
               "cf-ray": "[REDACTED]",
               "connection": "keep-alive",
               "content-type": "application/json",
-              "date": "Thu, 25 Jun 2026 22:05:30 GMT",
+              "date": "Fri, 26 Jun 2026 00:54:25 GMT",
               "openai-organization": "[REDACTED]",
-              "openai-processing-ms": "13807",
+              "openai-processing-ms": "15834",
               "openai-project": "[REDACTED]",
               "openai-version": "[REDACTED]",
               "server": "cloudflare",
@@ -293,9 +293,9 @@
           "cacheCreationInputTokens": 0
         },
         "assertions": {
-          "total": 2081,
+          "total": 2239,
           "prompt": 1545,
-          "completion": 536,
+          "completion": 694,
           "cached": 0,
           "numRequests": 0,
           "completionDetails": {
@@ -307,8 +307,8 @@
           }
         }
       },
-      "durationMs": 25456,
-      "evaluationDurationMs": 25456
+      "durationMs": 26295,
+      "evaluationDurationMs": 26295
     }
   },
   "config": {
@@ -347,8 +347,8 @@
     "nodeVersion": "v24.11.1",
     "platform": "win32",
     "arch": "x64",
-    "exportedAt": "2026-06-25T22:05:41.345Z",
-    "evaluationCreatedAt": "2026-06-25T22:05:15.762Z",
+    "exportedAt": "2026-06-26T00:54:35.712Z",
+    "evaluationCreatedAt": "2026-06-26T00:54:09.223Z",
     "author": "profjuarez2022@gmail.com"
   },
   "vars": [

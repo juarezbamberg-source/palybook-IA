@@ -1,8 +1,8 @@
 {
-  "evalId": "eval-myH-2026-06-25T22:06:48",
+  "evalId": "eval-VdI-2026-06-26T00:55:29",
   "results": {
     "version": 3,
-    "timestamp": "2026-06-25T22:06:48.709Z",
+    "timestamp": "2026-06-26T00:55:29.226Z",
     "prompts": [
       {
         "raw": "---\r\nnome: \"Plano Executável — Migração do Forge\"\r\ndescricao: \"A partir das etapas propostas, detalha o plano executável por sprint com tarefas, reversão e validação para a migração do Forge.\"\r\nversao: \"1.0.0\"\r\ntags:\r\n  - plano\r\n  - execucao\r\n  - forge\r\n  - migracao\r\n  - sprint\r\n  - aegis\r\ninputs:\r\n  - nome: etapas_migracao\r\n    descricao: \"Saída do prompt de etapas com a sequência proposta de migração\"\r\n---\r\n\r\n# Prompt: Plano Executável — Migração do Forge (Aegis)\r\n\r\nVocê é um SRE sênior da Aegis responsável por detalhar o plano executável da migração do Forge. Com base nas etapas propostas abaixo, produza um plano por sprint.\r\n\r\n## Etapas propostas\r\n\r\n```\r\n{{etapas_migracao}}\r\n```\r\n\r\n## Instruções\r\n\r\nDetalhe cada etapa em tarefas executáveis por sprint (1 sprint = 2 semanas). Para cada sprint:\r\n\r\n### Estrutura de cada sprint\r\n\r\n- **Sprint**: número e nome\r\n- **Objetivo**: o que esta sprint entrega\r\n- **Tarefas**: lista de tarefas com responsável sugerido\r\n  - `[INFRA]` — mudanças de infraestrutura\r\n  - `[CODIGO]` — mudanças de código\r\n  - `[TESTE]` — validação e testes\r\n  - `[DOC]` — documentação\r\n- **Validação**: como validar que a sprint foi bem-sucedida\r\n- **Plano de reversão**: passo a passo para voltar ao estado anterior\r\n- **Risco**: baixo, médio ou alto\r\n\r\n### Regras\r\n\r\n- Toda tarefa deve ser acionável por uma pessoa do time\r\n- O plano de reversão deve existir **antes** de executar a sprint\r\n- Nenhuma sprint pode deixar o sistema em estado inconsistente\r\n- O Sentinel não pode ficar sem dados em nenhum momento\r\n\r\n## Formato de saída\r\n\r\n```\r\n## Plano Executável — Migração do Forge\r\n\r\n### Sprint 1: <nome>\r\n**Objetivo**: <descrição>\r\n**Risco**: <nível>\r\n\r\nTarefas:\r\n- [INFRA] <tarefa>\r\n- [CODIGO] <tarefa>\r\n- [TESTE] <tarefa>\r\n\r\nValidação: <critério>\r\nReversão: <passo a passo>\r\n\r\n### Sprint 2: <nome>\r\n...\r\n```\r\n```\r\n\r\n---",
@@ -16,12 +16,12 @@
           "testErrorCount": 0,
           "assertPassCount": 1,
           "assertFailCount": 0,
-          "totalLatencyMs": 12749,
+          "totalLatencyMs": 14882,
           "tokenUsage": {
             "prompt": 592,
-            "completion": 773,
+            "completion": 820,
             "cached": 0,
-            "total": 1365,
+            "total": 1412,
             "numRequests": 1,
             "completionDetails": {
               "reasoning": 0,
@@ -31,9 +31,9 @@
               "cacheCreationInputTokens": 0
             },
             "assertions": {
-              "total": 1358,
-              "prompt": 1101,
-              "completion": 257,
+              "total": 1394,
+              "prompt": 1148,
+              "completion": 246,
               "cached": 0,
               "numRequests": 0,
               "completionDetails": {
@@ -48,22 +48,22 @@
           "namedScores": {},
           "namedScoresCount": {},
           "namedScoreWeights": {},
-          "cost": 0.0005526
+          "cost": 0.0005807999999999999
         }
       }
     ],
     "results": [
       {
-        "cost": 0.0005526,
+        "cost": 0.0005807999999999999,
         "gradingResult": {
           "pass": true,
           "score": 3,
           "reason": "All assertions passed",
           "namedScores": {},
           "tokensUsed": {
-            "total": 1358,
-            "prompt": 1101,
-            "completion": 257,
+            "total": 1394,
+            "prompt": 1148,
+            "completion": 246,
             "cached": 0,
             "numRequests": 1
           },
@@ -75,11 +75,11 @@
               },
               "pass": true,
               "score": 3,
-              "reason": "Critério 1 — Executabilidade: o plano lista tarefas e responsáveis, mas as ações são genéricas (ex.: implementar, testar, provisionar) e não traz comandos, configurações, critérios técnicos detalhados ou passos diretamente executáveis; nota 1/2. Critério 2 — Reversibilidade: todas as sprints têm seção de reversão com passos numerados para rollback; embora não sejam muito técnicos, estão explícitos por etapa; nota 2/2. Total = 3/4, atingindo o corte >= 3.",
+              "reason": "Critério 1 — Executabilidade: o plano organiza sprints, tarefas, responsáveis, validação e tipos de atividade, mas as ações são genéricas e não incluem comandos, configurações ou passos técnicos realmente executáveis; nota 1/2. Critério 2 — Reversibilidade: todas as sprints têm uma seção de reversão com passos definidos para rollback, ainda que em alto nível; nota 2/2. Total 3/4, atingindo o corte mínimo.",
               "tokensUsed": {
-                "total": 1358,
-                "prompt": 1101,
-                "completion": 257,
+                "total": 1394,
+                "prompt": 1148,
+                "completion": 246,
                 "cached": 0,
                 "numRequests": 1,
                 "completionDetails": {
@@ -99,9 +99,9 @@
                     "cf-ray": "[REDACTED]",
                     "connection": "keep-alive",
                     "content-type": "application/json",
-                    "date": "Thu, 25 Jun 2026 22:07:06 GMT",
+                    "date": "Fri, 26 Jun 2026 00:55:48 GMT",
                     "openai-organization": "[REDACTED]",
-                    "openai-processing-ms": "4810",
+                    "openai-processing-ms": "3612",
                     "openai-project": "[REDACTED]",
                     "openai-version": "[REDACTED]",
                     "server": "cloudflare",
@@ -119,13 +119,13 @@
                     "x-request-id": "[REDACTED]"
                   }
                 },
-                "renderedGradingPrompt": "[{\"role\":\"system\",\"content\":\"You are grading output according to a user-specified rubric. If the statement in the rubric is true, then the output passes the test. You respond with a JSON object with this structure: {reason: string, pass: boolean, score: number}\\n\\nExamples:\\n\\n<Output>Hello world</Output>\\n<Rubric>Content contains a greeting</Rubric>\\n{\\\"reason\\\": \\\"the content contains the word 'Hello'\\\", \\\"pass\\\": true, \\\"score\\\": 1.0}\\n\\n<Output>Avast ye swabs, repel the invaders!</Output>\\n<Rubric>Does not speak like a pirate</Rubric>\\n{\\\"reason\\\": \\\"'avast ye' is a common pirate term\\\", \\\"pass\\\": false, \\\"score\\\": 0.0}\"},{\"role\":\"user\",\"content\":\"<Output>\\n## Plano Executável — Migração do Forge\\n\\n### Sprint 1: Introdução de Eventos de Monitoramento\\n**Objetivo**: Introduzir eventos de monitoramento no Forge sem alterar a lógica de processamento existente.  \\n**Risco**: Baixo\\n\\nTarefas:\\n- [CODIGO] Implementar eventos de monitoramento no código do Forge (Responsável: Dev 1)\\n- [DOC] Atualizar a documentação do sistema para incluir novos eventos de monitoramento (Responsável: Dev 2)\\n- [TESTE] Criar testes unitários para validar a introdução dos eventos (Responsável: Dev 3)\\n\\nValidação: Verificar se os eventos de monitoramento estão sendo gerados corretamente e se não houve alteração na lógica de processamento.  \\nReversão: \\n1. Remover os eventos de monitoramento do código.\\n2. Reverter a documentação para a versão anterior.\\n3. Executar os testes para garantir que a lógica de processamento não foi afetada.\\n\\n### Sprint 2: Criação do Consumer Paralelo\\n**Objetivo**: Criar um consumer que funcione em paralelo ao batch job, processando dados em micro-batches.  \\n**Risco**: Médio\\n\\nTarefas:\\n- [INFRA] Provisionar recursos necessários para o novo consumer (Responsável: DevOps 1)\\n- [CODIGO] Desenvolver o consumer para processar micro-batches (Responsável: Dev 1)\\n- [TESTE] Testar a integração do novo consumer com o sistema existente (Responsável: Dev 3)\\n\\nValidação: Confirmar que o consumer está processando dados corretamente em micro-batches e que o batch job continua funcionando sem interrupções.  \\nReversão: \\n1. Desativar o novo consumer.\\n2. Reverter as alterações de infraestrutura se necessário.\\n3. Validar que o batch job está operando normalmente.\\n\\n### Sprint 3: Migração Gradual dos Consumidores\\n**Objetivo**: Migrar gradualmente os consumidores do batch para o stream, garantindo que o sistema permaneça estável.  \\n**Risco**: Alto\\n\\nTarefas:\\n- [CODIGO] Implementar a lógica de migração para cada consumidor (Responsável: Dev 1)\\n- [TESTE] Realizar testes de carga para garantir que o sistema suporte a migração (Responsável: Dev 3)\\n- [DOC] Documentar o processo de migração e as alterações realizadas (Responsável: Dev 2)\\n\\nValidação: Monitorar o desempenho do sistema e garantir que todos os consumidores migrados estão funcionando corretamente.  \\nReversão: \\n1. Reverter os consumidores migrados para o batch.\\n2. Validar que todos os dados foram processados corretamente.\\n3. Monitorar o sistema para garantir que não houve perda de dados.\\n\\n### Sprint 4: Descomissionamento do Batch Job\\n**Objetivo**: Descomissionar o batch job após validação de que todos os consumidores estão funcionando no stream.  \\n**Risco**: Alto\\n\\nTarefas:\\n- [INFRA] Remover o batch job da infraestrutura (Responsável: DevOps 1)\\n- [CODIGO] Limpar o código relacionado ao batch job (Responsável: Dev 1)\\n- [TESTE] Realizar testes finais para garantir que o sistema está operando corretamente sem o batch job (Responsável: Dev 3)\\n\\nValidação: Confirmar que o sistema opera normalmente sem o batch job e que todos os dados estão sendo processados pelo novo sistema de stream.  \\nReversão: \\n1. Reinstalar o batch job na infraestrutura.\\n2. Restaurar o código do batch job.\\n3. Validar que o sistema está funcionando como antes da migração.\\n</Output>\\n<Rubric>\\nAvalie o plano nos 2 critérios abaixo (0-2 cada, total 0-4):\\n\\n## Critério 1 — Executabilidade (0-2)\\nO plano tem ações concretas (comandos, configurações, passos técnicos)?\\nNota 0: Apenas conceitual.\\nNota 1: Ações genéricas.\\nNota 2: Passos técnicos específicos e executáveis.\\n\\n## Critério 2 — Reversibilidade (0-2)\\nCada etapa tem rollback documentado?\\nNota 0: Sem rollback.\\nNota 1: Rollback mencionado mas não detalhado.\\nNota 2: Rollback explícito por etapa.\\n\\nCorte: total >= 3. Se total < 3, REPROVADO.\\n\\n</Rubric>\"}]"
+                "renderedGradingPrompt": "[{\"role\":\"system\",\"content\":\"You are grading output according to a user-specified rubric. If the statement in the rubric is true, then the output passes the test. You respond with a JSON object with this structure: {reason: string, pass: boolean, score: number}\\n\\nExamples:\\n\\n<Output>Hello world</Output>\\n<Rubric>Content contains a greeting</Rubric>\\n{\\\"reason\\\": \\\"the content contains the word 'Hello'\\\", \\\"pass\\\": true, \\\"score\\\": 1.0}\\n\\n<Output>Avast ye swabs, repel the invaders!</Output>\\n<Rubric>Does not speak like a pirate</Rubric>\\n{\\\"reason\\\": \\\"'avast ye' is a common pirate term\\\", \\\"pass\\\": false, \\\"score\\\": 0.0}\"},{\"role\":\"user\",\"content\":\"<Output>\\n## Plano Executável — Migração do Forge\\n\\n### Sprint 1: Introdução de Monitoramento\\n**Objetivo**: Introduzir eventos de monitoramento no Forge sem alterar a lógica de processamento existente.  \\n**Risco**: Baixo\\n\\nTarefas:\\n- [CODIGO] Implementar eventos de monitoramento no código do Forge (Responsável: Dev 1)\\n- [DOC] Atualizar a documentação do sistema para incluir novos eventos de monitoramento (Responsável: Dev 2)\\n- [TESTE] Criar testes unitários para validar a implementação dos eventos de monitoramento (Responsável: Dev 3)\\n\\nValidação: Verificar se os eventos de monitoramento estão sendo gerados corretamente e se não houve alteração na lógica de processamento.  \\nReversão: \\n1. Reverter as alterações de código que introduziram os eventos de monitoramento.\\n2. Validar que a lógica de processamento original está intacta.\\n3. Atualizar a documentação para remover referências aos novos eventos.\\n\\n### Sprint 2: Criação do Consumer Paralelo\\n**Objetivo**: Criar um consumer que funcione em paralelo ao batch job, processando dados em micro-batches.  \\n**Risco**: Médio\\n\\nTarefas:\\n- [INFRA] Provisionar recursos necessários para o novo consumer (Responsável: DevOps 1)\\n- [CODIGO] Desenvolver o consumer que processa dados em micro-batches (Responsável: Dev 1)\\n- [TESTE] Implementar testes de integração para o novo consumer (Responsável: Dev 3)\\n\\nValidação: Confirmar que o consumer está processando dados corretamente em micro-batches e que o batch job original continua funcionando.  \\nReversão: \\n1. Desativar o novo consumer.\\n2. Validar que o batch job original está operando normalmente.\\n3. Remover qualquer configuração ou recurso provisionado para o novo consumer.\\n\\n### Sprint 3: Migração Gradual dos Consumidores\\n**Objetivo**: Migrar gradualmente os consumidores do batch para o stream, garantindo que o sistema permaneça estável.  \\n**Risco**: Alto\\n\\nTarefas:\\n- [CODIGO] Implementar a lógica de migração para cada consumidor (Responsável: Dev 1)\\n- [TESTE] Realizar testes de carga para garantir que o sistema suporte a migração (Responsável: Dev 3)\\n- [DOC] Documentar o processo de migração e as alterações realizadas (Responsável: Dev 2)\\n\\nValidação: Monitorar o desempenho do sistema e garantir que todos os consumidores migrados estejam funcionando corretamente.  \\nReversão: \\n1. Reverter a lógica de migração para os consumidores que foram migrados.\\n2. Validar que todos os consumidores estão operando a partir do batch novamente.\\n3. Atualizar a documentação para refletir o estado anterior.\\n\\n### Sprint 4: Descomissionamento do Batch Job\\n**Objetivo**: Descomissionar o batch job após validação de que todos os consumidores estão funcionando corretamente no stream.  \\n**Risco**: Médio\\n\\nTarefas:\\n- [INFRA] Remover recursos associados ao batch job (Responsável: DevOps 1)\\n- [CODIGO] Desativar a lógica do batch job no código (Responsável: Dev 1)\\n- [DOC] Atualizar a documentação para remover referências ao batch job (Responsável: Dev 2)\\n\\nValidação: Confirmar que todos os dados estão sendo processados pelo novo sistema de stream e que não há dependências restantes do batch job.  \\nReversão: \\n1. Reativar o batch job no código.\\n2. Provisionar novamente os recursos necessários para o batch job.\\n3. Validar que o batch job está funcionando corretamente e que os dados estão sendo processados.\\n\\nEste plano executável garante uma migração controlada e segura do Forge, minimizando riscos e mantendo a integridade do sistema durante todo o processo.\\n</Output>\\n<Rubric>\\nAvalie o plano nos 2 critérios abaixo (0-2 cada, total 0-4):\\n\\n## Critério 1 — Executabilidade (0-2)\\nO plano tem ações concretas (comandos, configurações, passos técnicos)?\\nNota 0: Apenas conceitual.\\nNota 1: Ações genéricas.\\nNota 2: Passos técnicos específicos e executáveis.\\n\\n## Critério 2 — Reversibilidade (0-2)\\nCada etapa tem rollback documentado?\\nNota 0: Sem rollback.\\nNota 1: Rollback mencionado mas não detalhado.\\nNota 2: Rollback explícito por etapa.\\n\\nCorte: total >= 3. Se total < 3, REPROVADO.\\n\\n</Rubric>\"}]"
               }
             }
           ]
         },
-        "id": "a9e5c591-78a1-4328-8628-952920b0fd8b",
-        "latencyMs": 12749,
+        "id": "47babd6d-db46-4072-a170-89aaa260794f",
+        "latencyMs": 14882,
         "namedScores": {},
         "prompt": {
           "raw": "---\r\nnome: \"Plano Executável — Migração do Forge\"\r\ndescricao: \"A partir das etapas propostas, detalha o plano executável por sprint com tarefas, reversão e validação para a migração do Forge.\"\r\nversao: \"1.0.0\"\r\ntags:\r\n  - plano\r\n  - execucao\r\n  - forge\r\n  - migracao\r\n  - sprint\r\n  - aegis\r\ninputs:\r\n  - nome: etapas_migracao\r\n    descricao: \"Saída do prompt de etapas com a sequência proposta de migração\"\r\n---\r\n\r\n# Prompt: Plano Executável — Migração do Forge (Aegis)\r\n\r\nVocê é um SRE sênior da Aegis responsável por detalhar o plano executável da migração do Forge. Com base nas etapas propostas abaixo, produza um plano por sprint.\r\n\r\n## Etapas propostas\r\n\r\n```\r\nEtapas da migração:\n1. Introduzir eventos de monitoramento no Forge (sem alterar lógica de processamento)\n2. Criar consumer paralelo ao batch job, processando em micro-batches\n3. Migrar gradualmente os consumidores do batch para o stream\n4. Descomissionar o batch job após validação\nRequisitos: cada etapa deve ter rollback documentado\r\n```\r\n\r\n## Instruções\r\n\r\nDetalhe cada etapa em tarefas executáveis por sprint (1 sprint = 2 semanas). Para cada sprint:\r\n\r\n### Estrutura de cada sprint\r\n\r\n- **Sprint**: número e nome\r\n- **Objetivo**: o que esta sprint entrega\r\n- **Tarefas**: lista de tarefas com responsável sugerido\r\n  - `[INFRA]` — mudanças de infraestrutura\r\n  - `[CODIGO]` — mudanças de código\r\n  - `[TESTE]` — validação e testes\r\n  - `[DOC]` — documentação\r\n- **Validação**: como validar que a sprint foi bem-sucedida\r\n- **Plano de reversão**: passo a passo para voltar ao estado anterior\r\n- **Risco**: baixo, médio ou alto\r\n\r\n### Regras\r\n\r\n- Toda tarefa deve ser acionável por uma pessoa do time\r\n- O plano de reversão deve existir **antes** de executar a sprint\r\n- Nenhuma sprint pode deixar o sistema em estado inconsistente\r\n- O Sentinel não pode ficar sem dados em nenhum momento\r\n\r\n## Formato de saída\r\n\r\n```\r\n## Plano Executável — Migração do Forge\r\n\r\n### Sprint 1: <nome>\r\n**Objetivo**: <descrição>\r\n**Risco**: <nível>\r\n\r\nTarefas:\r\n- [INFRA] <tarefa>\r\n- [CODIGO] <tarefa>\r\n- [TESTE] <tarefa>\r\n\r\nValidação: <critério>\r\nReversão: <passo a passo>\r\n\r\n### Sprint 2: <nome>\r\n...\r\n```\r\n```\r\n\r\n---",
@@ -139,11 +139,11 @@
           "label": ""
         },
         "response": {
-          "output": "## Plano Executável — Migração do Forge\n\n### Sprint 1: Introdução de Eventos de Monitoramento\n**Objetivo**: Introduzir eventos de monitoramento no Forge sem alterar a lógica de processamento existente.  \n**Risco**: Baixo\n\nTarefas:\n- [CODIGO] Implementar eventos de monitoramento no código do Forge (Responsável: Dev 1)\n- [DOC] Atualizar a documentação do sistema para incluir novos eventos de monitoramento (Responsável: Dev 2)\n- [TESTE] Criar testes unitários para validar a introdução dos eventos (Responsável: Dev 3)\n\nValidação: Verificar se os eventos de monitoramento estão sendo gerados corretamente e se não houve alteração na lógica de processamento.  \nReversão: \n1. Remover os eventos de monitoramento do código.\n2. Reverter a documentação para a versão anterior.\n3. Executar os testes para garantir que a lógica de processamento não foi afetada.\n\n### Sprint 2: Criação do Consumer Paralelo\n**Objetivo**: Criar um consumer que funcione em paralelo ao batch job, processando dados em micro-batches.  \n**Risco**: Médio\n\nTarefas:\n- [INFRA] Provisionar recursos necessários para o novo consumer (Responsável: DevOps 1)\n- [CODIGO] Desenvolver o consumer para processar micro-batches (Responsável: Dev 1)\n- [TESTE] Testar a integração do novo consumer com o sistema existente (Responsável: Dev 3)\n\nValidação: Confirmar que o consumer está processando dados corretamente em micro-batches e que o batch job continua funcionando sem interrupções.  \nReversão: \n1. Desativar o novo consumer.\n2. Reverter as alterações de infraestrutura se necessário.\n3. Validar que o batch job está operando normalmente.\n\n### Sprint 3: Migração Gradual dos Consumidores\n**Objetivo**: Migrar gradualmente os consumidores do batch para o stream, garantindo que o sistema permaneça estável.  \n**Risco**: Alto\n\nTarefas:\n- [CODIGO] Implementar a lógica de migração para cada consumidor (Responsável: Dev 1)\n- [TESTE] Realizar testes de carga para garantir que o sistema suporte a migração (Responsável: Dev 3)\n- [DOC] Documentar o processo de migração e as alterações realizadas (Responsável: Dev 2)\n\nValidação: Monitorar o desempenho do sistema e garantir que todos os consumidores migrados estão funcionando corretamente.  \nReversão: \n1. Reverter os consumidores migrados para o batch.\n2. Validar que todos os dados foram processados corretamente.\n3. Monitorar o sistema para garantir que não houve perda de dados.\n\n### Sprint 4: Descomissionamento do Batch Job\n**Objetivo**: Descomissionar o batch job após validação de que todos os consumidores estão funcionando no stream.  \n**Risco**: Alto\n\nTarefas:\n- [INFRA] Remover o batch job da infraestrutura (Responsável: DevOps 1)\n- [CODIGO] Limpar o código relacionado ao batch job (Responsável: Dev 1)\n- [TESTE] Realizar testes finais para garantir que o sistema está operando corretamente sem o batch job (Responsável: Dev 3)\n\nValidação: Confirmar que o sistema opera normalmente sem o batch job e que todos os dados estão sendo processados pelo novo sistema de stream.  \nReversão: \n1. Reinstalar o batch job na infraestrutura.\n2. Restaurar o código do batch job.\n3. Validar que o sistema está funcionando como antes da migração.",
+          "output": "## Plano Executável — Migração do Forge\n\n### Sprint 1: Introdução de Monitoramento\n**Objetivo**: Introduzir eventos de monitoramento no Forge sem alterar a lógica de processamento existente.  \n**Risco**: Baixo\n\nTarefas:\n- [CODIGO] Implementar eventos de monitoramento no código do Forge (Responsável: Dev 1)\n- [DOC] Atualizar a documentação do sistema para incluir novos eventos de monitoramento (Responsável: Dev 2)\n- [TESTE] Criar testes unitários para validar a implementação dos eventos de monitoramento (Responsável: Dev 3)\n\nValidação: Verificar se os eventos de monitoramento estão sendo gerados corretamente e se não houve alteração na lógica de processamento.  \nReversão: \n1. Reverter as alterações de código que introduziram os eventos de monitoramento.\n2. Validar que a lógica de processamento original está intacta.\n3. Atualizar a documentação para remover referências aos novos eventos.\n\n### Sprint 2: Criação do Consumer Paralelo\n**Objetivo**: Criar um consumer que funcione em paralelo ao batch job, processando dados em micro-batches.  \n**Risco**: Médio\n\nTarefas:\n- [INFRA] Provisionar recursos necessários para o novo consumer (Responsável: DevOps 1)\n- [CODIGO] Desenvolver o consumer que processa dados em micro-batches (Responsável: Dev 1)\n- [TESTE] Implementar testes de integração para o novo consumer (Responsável: Dev 3)\n\nValidação: Confirmar que o consumer está processando dados corretamente em micro-batches e que o batch job original continua funcionando.  \nReversão: \n1. Desativar o novo consumer.\n2. Validar que o batch job original está operando normalmente.\n3. Remover qualquer configuração ou recurso provisionado para o novo consumer.\n\n### Sprint 3: Migração Gradual dos Consumidores\n**Objetivo**: Migrar gradualmente os consumidores do batch para o stream, garantindo que o sistema permaneça estável.  \n**Risco**: Alto\n\nTarefas:\n- [CODIGO] Implementar a lógica de migração para cada consumidor (Responsável: Dev 1)\n- [TESTE] Realizar testes de carga para garantir que o sistema suporte a migração (Responsável: Dev 3)\n- [DOC] Documentar o processo de migração e as alterações realizadas (Responsável: Dev 2)\n\nValidação: Monitorar o desempenho do sistema e garantir que todos os consumidores migrados estejam funcionando corretamente.  \nReversão: \n1. Reverter a lógica de migração para os consumidores que foram migrados.\n2. Validar que todos os consumidores estão operando a partir do batch novamente.\n3. Atualizar a documentação para refletir o estado anterior.\n\n### Sprint 4: Descomissionamento do Batch Job\n**Objetivo**: Descomissionar o batch job após validação de que todos os consumidores estão funcionando corretamente no stream.  \n**Risco**: Médio\n\nTarefas:\n- [INFRA] Remover recursos associados ao batch job (Responsável: DevOps 1)\n- [CODIGO] Desativar a lógica do batch job no código (Responsável: Dev 1)\n- [DOC] Atualizar a documentação para remover referências ao batch job (Responsável: Dev 2)\n\nValidação: Confirmar que todos os dados estão sendo processados pelo novo sistema de stream e que não há dependências restantes do batch job.  \nReversão: \n1. Reativar o batch job no código.\n2. Provisionar novamente os recursos necessários para o batch job.\n3. Validar que o batch job está funcionando corretamente e que os dados estão sendo processados.\n\nEste plano executável garante uma migração controlada e segura do Forge, minimizando riscos e mantendo a integridade do sistema durante todo o processo.",
           "tokenUsage": {
-            "total": 1365,
+            "total": 1412,
             "prompt": 592,
-            "completion": 773,
+            "completion": 820,
             "numRequests": 1,
             "completionDetails": {
               "reasoning": 0,
@@ -152,9 +152,9 @@
             }
           },
           "cached": false,
-          "latencyMs": 12749,
+          "latencyMs": 14882,
           "finishReason": "stop",
-          "cost": 0.0005526,
+          "cost": 0.0005807999999999999,
           "guardrails": {
             "flagged": false
           },
@@ -169,9 +169,9 @@
                 "cf-ray": "[REDACTED]",
                 "connection": "keep-alive",
                 "content-type": "application/json",
-                "date": "Thu, 25 Jun 2026 22:07:01 GMT",
+                "date": "Fri, 26 Jun 2026 00:55:44 GMT",
                 "openai-organization": "[REDACTED]",
-                "openai-processing-ms": "12503",
+                "openai-processing-ms": "14295",
                 "openai-project": "[REDACTED]",
                 "openai-version": "[REDACTED]",
                 "server": "cloudflare",
@@ -210,9 +210,9 @@
         "testIdx": 0,
         "tokenUsage": {
           "prompt": 592,
-          "completion": 773,
+          "completion": 820,
           "cached": 0,
-          "total": 1365,
+          "total": 1412,
           "numRequests": 1,
           "completionDetails": {
             "reasoning": 0,
@@ -222,9 +222,9 @@
             "cacheCreationInputTokens": 0
           },
           "assertions": {
-            "total": 1358,
-            "prompt": 1101,
-            "completion": 257,
+            "total": 1394,
+            "prompt": 1148,
+            "completion": 246,
             "cached": 0,
             "numRequests": 1,
             "completionDetails": {
@@ -250,9 +250,9 @@
               "cf-ray": "[REDACTED]",
               "connection": "keep-alive",
               "content-type": "application/json",
-              "date": "Thu, 25 Jun 2026 22:07:01 GMT",
+              "date": "Fri, 26 Jun 2026 00:55:44 GMT",
               "openai-organization": "[REDACTED]",
-              "openai-processing-ms": "12503",
+              "openai-processing-ms": "14295",
               "openai-project": "[REDACTED]",
               "openai-version": "[REDACTED]",
               "server": "cloudflare",
@@ -281,9 +281,9 @@
       "errors": 0,
       "tokenUsage": {
         "prompt": 592,
-        "completion": 773,
+        "completion": 820,
         "cached": 0,
-        "total": 1365,
+        "total": 1412,
         "numRequests": 1,
         "completionDetails": {
           "reasoning": 0,
@@ -293,9 +293,9 @@
           "cacheCreationInputTokens": 0
         },
         "assertions": {
-          "total": 1358,
-          "prompt": 1101,
-          "completion": 257,
+          "total": 1394,
+          "prompt": 1148,
+          "completion": 246,
           "cached": 0,
           "numRequests": 0,
           "completionDetails": {
@@ -307,8 +307,8 @@
           }
         }
       },
-      "durationMs": 17832,
-      "evaluationDurationMs": 17832
+      "durationMs": 18780,
+      "evaluationDurationMs": 18780
     }
   },
   "config": {
@@ -347,8 +347,8 @@
     "nodeVersion": "v24.11.1",
     "platform": "win32",
     "arch": "x64",
-    "exportedAt": "2026-06-25T22:07:06.660Z",
-    "evaluationCreatedAt": "2026-06-25T22:06:48.709Z",
+    "exportedAt": "2026-06-26T00:55:48.156Z",
+    "evaluationCreatedAt": "2026-06-26T00:55:29.226Z",
     "author": "profjuarez2022@gmail.com"
   },
   "vars": [

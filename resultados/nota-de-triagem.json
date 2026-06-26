@@ -1,8 +1,8 @@
 {
-  "evalId": "eval-ElA-2026-06-25T22:03:43",
+  "evalId": "eval-kQE-2026-06-26T00:53:03",
   "results": {
     "version": 3,
-    "timestamp": "2026-06-25T22:03:43.557Z",
+    "timestamp": "2026-06-26T00:53:03.790Z",
     "prompts": [
       {
         "raw": "---\r\nnome: \"Nota de Triagem — Sentinel\"\r\ndescricao: \"A partir de um alerta cru do ecossistema Aegis, gera uma nota de triagem padronizada com impacto, hipótese inicial, ação imediata e escalonamento.\"\r\nversao: \"1.0.0\"\r\ntags:\r\n  - sre\r\n  - incident-response\r\n  - triagem\r\n  - sentinel\r\n  - aegis\r\ninputs:\r\n  - nome: alerta_cru\r\n    descricao: \"Alerta bruto recebido do Sentinel, Relay, Forge ou Cerebro, com timestamp, sistema, métrica e contexto do problema\"\r\n---\r\n\r\n# Prompt: Nota de Triagem Padronizada — Aegis\r\n\r\nVocê é um SRE de plantão na Aegis responsável por documentar notas de triagem a partir de alertas crus do Sentinel. Cada nota deve seguir o formato padronizado definido pela Head of Product.\r\n\r\n## Formato de saída obrigatório\r\n\r\nToda nota deve conter exatamente estes 5 campos, nesta ordem:\r\n\r\nALERTA: <título curto do alerta>\r\nIMPACTO: <o que está sendo afetado e em que escala>\r\nHIPÓTESE INICIAL: <possível causa, baseada nos dados disponíveis>\r\nAÇÃO IMEDIATA: <ação que o plantão está tomando agora>\r\nESCALAR PARA: <@time se condição não melhorar em Xmin>\r\n```\r\n\r\n## Exemplos de referência (formato esperado)\r\n\r\nAbaixo estão 3 exemplos de notas que o time considera bem escritas. Use-os como referência de formato, tom e nível de detalhe — não como conteúdo fixo.\r\n\r\n### Exemplo 1\r\n```\r\nALERTA: Relay - taxa de rejeição de ingestão acima de 2% por 5min\r\nIMPACTO: ingestão de telemetry degradada para ~12% dos tenants\r\nHIPÓTESE INICIAL: deploy do Relay às 09:14 reduziu o buffer de ingestão\r\nAÇÃO IMEDIATA: rollback iniciado via Argo CD\r\nESCALAR PARA: @relay-core se a rejeição não cair em 10min\r\n```\r\n\r\n### Exemplo 2\r\n```\r\nALERTA: Forge - lag de ingestão acima de 15min\r\nIMPACTO: dashboards do Sentinel atrasados para todos os tenants\r\nHIPÓTESE INICIAL: pico de volume do tenant acme-corp saturou o consumer\r\nAÇÃO IMEDIATA: aumento manual de partições do consumer do Relay\r\nESCALAR PARA: @data-platform se lag não estabilizar em 20min\r\n```\r\n\r\n### Exemplo 3\r\n```\r\nALERTA: Cerebro - latência de busca p99 acima de 4s\r\nIMPACTO: investigação de incidentes lenta para o time interno\r\nHIPÓTESE INICIAL: reindexação noturna não concluiu antes do horário comercial\r\nAÇÃO IMEDIATA: pausar reindexação e priorizar shard quente\r\nESCALAR PARA: @search-infra se p99 não cair em 15min\r\n```\r\n\r\n## Alerta cru para análise\r\n\r\nAbaixo está o alerta bruto disparado pelo sistema. Analise-o e produza a nota de triagem no formato padronizado acima.\r\n\r\n```\r\n{{alerta_cru}}\r\n```\r\n\r\n## Regras\r\n\r\n1. O campo `ALERTA:` deve conter o sistema de origem + nome do alerta.\r\n2. O campo `IMPACTO:` deve quantificar o impacto (número de tenants, atraso, percentual).\r\n3. A `HIPÓTESE INICIAL:` deve ser uma explicação plausível, não achismo.\r\n4. A `AÇÃO IMEDIATA:` deve ser algo executável pelo plantão agora.\r\n5. `ESCALAR PARA:` deve conter um handle @time e uma condição clara.\r\n6. Seja concisa: a nota completa não deve ultrapassar 6 linhas.\r\n```\r\n",
@@ -16,7 +16,7 @@
           "testErrorCount": 0,
           "assertPassCount": 21,
           "assertFailCount": 0,
-          "totalLatencyMs": 8631,
+          "totalLatencyMs": 6632,
           "tokenUsage": {
             "prompt": 2518,
             "completion": 293,
@@ -133,8 +133,8 @@
             }
           ]
         },
-        "id": "e277279f-ef3d-48d1-94e0-577e0732e8fd",
-        "latencyMs": 2901,
+        "id": "480403e5-e91b-4c06-a7b1-a8a50d645dc6",
+        "latencyMs": 2123,
         "namedScores": {},
         "prompt": {
           "raw": "---\r\nnome: \"Nota de Triagem — Sentinel\"\r\ndescricao: \"A partir de um alerta cru do ecossistema Aegis, gera uma nota de triagem padronizada com impacto, hipótese inicial, ação imediata e escalonamento.\"\r\nversao: \"1.0.0\"\r\ntags:\r\n  - sre\r\n  - incident-response\r\n  - triagem\r\n  - sentinel\r\n  - aegis\r\ninputs:\r\n  - nome: alerta_cru\r\n    descricao: \"Alerta bruto recebido do Sentinel, Relay, Forge ou Cerebro, com timestamp, sistema, métrica e contexto do problema\"\r\n---\r\n\r\n# Prompt: Nota de Triagem Padronizada — Aegis\r\n\r\nVocê é um SRE de plantão na Aegis responsável por documentar notas de triagem a partir de alertas crus do Sentinel. Cada nota deve seguir o formato padronizado definido pela Head of Product.\r\n\r\n## Formato de saída obrigatório\r\n\r\nToda nota deve conter exatamente estes 5 campos, nesta ordem:\r\n\r\nALERTA: <título curto do alerta>\r\nIMPACTO: <o que está sendo afetado e em que escala>\r\nHIPÓTESE INICIAL: <possível causa, baseada nos dados disponíveis>\r\nAÇÃO IMEDIATA: <ação que o plantão está tomando agora>\r\nESCALAR PARA: <@time se condição não melhorar em Xmin>\r\n```\r\n\r\n## Exemplos de referência (formato esperado)\r\n\r\nAbaixo estão 3 exemplos de notas que o time considera bem escritas. Use-os como referência de formato, tom e nível de detalhe — não como conteúdo fixo.\r\n\r\n### Exemplo 1\r\n```\r\nALERTA: Relay - taxa de rejeição de ingestão acima de 2% por 5min\r\nIMPACTO: ingestão de telemetry degradada para ~12% dos tenants\r\nHIPÓTESE INICIAL: deploy do Relay às 09:14 reduziu o buffer de ingestão\r\nAÇÃO IMEDIATA: rollback iniciado via Argo CD\r\nESCALAR PARA: @relay-core se a rejeição não cair em 10min\r\n```\r\n\r\n### Exemplo 2\r\n```\r\nALERTA: Forge - lag de ingestão acima de 15min\r\nIMPACTO: dashboards do Sentinel atrasados para todos os tenants\r\nHIPÓTESE INICIAL: pico de volume do tenant acme-corp saturou o consumer\r\nAÇÃO IMEDIATA: aumento manual de partições do consumer do Relay\r\nESCALAR PARA: @data-platform se lag não estabilizar em 20min\r\n```\r\n\r\n### Exemplo 3\r\n```\r\nALERTA: Cerebro - latência de busca p99 acima de 4s\r\nIMPACTO: investigação de incidentes lenta para o time interno\r\nHIPÓTESE INICIAL: reindexação noturna não concluiu antes do horário comercial\r\nAÇÃO IMEDIATA: pausar reindexação e priorizar shard quente\r\nESCALAR PARA: @search-infra se p99 não cair em 15min\r\n```\r\n\r\n## Alerta cru para análise\r\n\r\nAbaixo está o alerta bruto disparado pelo sistema. Analise-o e produza a nota de triagem no formato padronizado acima.\r\n\r\n```\r\n2026-05-12 14:02:09 UTC [Sentinel] autoscaler hit max replicas (60/60) on sentinel-api, queue depth on Relay growing 2k/min, CPU avg 88%, tenant stark-industries sending 4x baseline volume after onboarding new region\r\n```\r\n\r\n## Regras\r\n\r\n1. O campo `ALERTA:` deve conter o sistema de origem + nome do alerta.\r\n2. O campo `IMPACTO:` deve quantificar o impacto (número de tenants, atraso, percentual).\r\n3. A `HIPÓTESE INICIAL:` deve ser uma explicação plausível, não achismo.\r\n4. A `AÇÃO IMEDIATA:` deve ser algo executável pelo plantão agora.\r\n5. `ESCALAR PARA:` deve conter um handle @time e uma condição clara.\r\n6. Seja concisa: a nota completa não deve ultrapassar 6 linhas.\r\n```\r\n",
@@ -161,7 +161,7 @@
             }
           },
           "cached": false,
-          "latencyMs": 2901,
+          "latencyMs": 2123,
           "finishReason": "stop",
           "cost": 0.00019079999999999998,
           "guardrails": {
@@ -178,9 +178,9 @@
                 "cf-ray": "[REDACTED]",
                 "connection": "keep-alive",
                 "content-type": "application/json",
-                "date": "Thu, 25 Jun 2026 22:03:46 GMT",
+                "date": "Fri, 26 Jun 2026 00:53:06 GMT",
                 "openai-organization": "[REDACTED]",
-                "openai-processing-ms": "1578",
+                "openai-processing-ms": "1360",
                 "openai-project": "[REDACTED]",
                 "openai-version": "[REDACTED]",
                 "server": "cloudflare",
@@ -282,9 +282,9 @@
               "cf-ray": "[REDACTED]",
               "connection": "keep-alive",
               "content-type": "application/json",
-              "date": "Thu, 25 Jun 2026 22:03:46 GMT",
+              "date": "Fri, 26 Jun 2026 00:53:06 GMT",
               "openai-organization": "[REDACTED]",
-              "openai-processing-ms": "1578",
+              "openai-processing-ms": "1360",
               "openai-project": "[REDACTED]",
               "openai-version": "[REDACTED]",
               "server": "cloudflare",
@@ -386,8 +386,8 @@
             }
           ]
         },
-        "id": "5b590666-4060-4fbf-af93-2d36107f14ef",
-        "latencyMs": 2918,
+        "id": "a2c568be-7b3a-4c04-a002-f6293b9ec281",
+        "latencyMs": 2433,
         "namedScores": {},
         "prompt": {
           "raw": "---\r\nnome: \"Nota de Triagem — Sentinel\"\r\ndescricao: \"A partir de um alerta cru do ecossistema Aegis, gera uma nota de triagem padronizada com impacto, hipótese inicial, ação imediata e escalonamento.\"\r\nversao: \"1.0.0\"\r\ntags:\r\n  - sre\r\n  - incident-response\r\n  - triagem\r\n  - sentinel\r\n  - aegis\r\ninputs:\r\n  - nome: alerta_cru\r\n    descricao: \"Alerta bruto recebido do Sentinel, Relay, Forge ou Cerebro, com timestamp, sistema, métrica e contexto do problema\"\r\n---\r\n\r\n# Prompt: Nota de Triagem Padronizada — Aegis\r\n\r\nVocê é um SRE de plantão na Aegis responsável por documentar notas de triagem a partir de alertas crus do Sentinel. Cada nota deve seguir o formato padronizado definido pela Head of Product.\r\n\r\n## Formato de saída obrigatório\r\n\r\nToda nota deve conter exatamente estes 5 campos, nesta ordem:\r\n\r\nALERTA: <título curto do alerta>\r\nIMPACTO: <o que está sendo afetado e em que escala>\r\nHIPÓTESE INICIAL: <possível causa, baseada nos dados disponíveis>\r\nAÇÃO IMEDIATA: <ação que o plantão está tomando agora>\r\nESCALAR PARA: <@time se condição não melhorar em Xmin>\r\n```\r\n\r\n## Exemplos de referência (formato esperado)\r\n\r\nAbaixo estão 3 exemplos de notas que o time considera bem escritas. Use-os como referência de formato, tom e nível de detalhe — não como conteúdo fixo.\r\n\r\n### Exemplo 1\r\n```\r\nALERTA: Relay - taxa de rejeição de ingestão acima de 2% por 5min\r\nIMPACTO: ingestão de telemetry degradada para ~12% dos tenants\r\nHIPÓTESE INICIAL: deploy do Relay às 09:14 reduziu o buffer de ingestão\r\nAÇÃO IMEDIATA: rollback iniciado via Argo CD\r\nESCALAR PARA: @relay-core se a rejeição não cair em 10min\r\n```\r\n\r\n### Exemplo 2\r\n```\r\nALERTA: Forge - lag de ingestão acima de 15min\r\nIMPACTO: dashboards do Sentinel atrasados para todos os tenants\r\nHIPÓTESE INICIAL: pico de volume do tenant acme-corp saturou o consumer\r\nAÇÃO IMEDIATA: aumento manual de partições do consumer do Relay\r\nESCALAR PARA: @data-platform se lag não estabilizar em 20min\r\n```\r\n\r\n### Exemplo 3\r\n```\r\nALERTA: Cerebro - latência de busca p99 acima de 4s\r\nIMPACTO: investigação de incidentes lenta para o time interno\r\nHIPÓTESE INICIAL: reindexação noturna não concluiu antes do horário comercial\r\nAÇÃO IMEDIATA: pausar reindexação e priorizar shard quente\r\nESCALAR PARA: @search-infra se p99 não cair em 15min\r\n```\r\n\r\n## Alerta cru para análise\r\n\r\nAbaixo está o alerta bruto disparado pelo sistema. Analise-o e produza a nota de triagem no formato padronizado acima.\r\n\r\n```\r\n2026-05-13 03:11:00 UTC [Relay] ingest reject rate 6% for 8min, tenant wakanda-systems, buffer saturated after deploy 02:55\r\n```\r\n\r\n## Regras\r\n\r\n1. O campo `ALERTA:` deve conter o sistema de origem + nome do alerta.\r\n2. O campo `IMPACTO:` deve quantificar o impacto (número de tenants, atraso, percentual).\r\n3. A `HIPÓTESE INICIAL:` deve ser uma explicação plausível, não achismo.\r\n4. A `AÇÃO IMEDIATA:` deve ser algo executável pelo plantão agora.\r\n5. `ESCALAR PARA:` deve conter um handle @time e uma condição clara.\r\n6. Seja concisa: a nota completa não deve ultrapassar 6 linhas.\r\n```\r\n",
@@ -401,7 +401,7 @@
           "label": ""
         },
         "response": {
-          "output": "```\nALERTA: Relay - taxa de rejeição de ingestão acima de 6% por 8min\nIMPACTO: ingestão de telemetry degradada para o tenant wakanda-systems\nHIPÓTESE INICIAL: buffer saturado após deploy às 02:55\nAÇÃO IMEDIATA: aumento do buffer de ingestão em 20%\nESCALAR PARA: @relay-core se a rejeição não cair em 10min\n```",
+          "output": "```\nALERTA: Relay - taxa de rejeição de ingestão acima de 6% por 8min\nIMPACTO: ingestão de telemetry degradada para 100% do tenant wakanda-systems\nHIPÓTESE INICIAL: buffer saturado após deploy às 02:55\nAÇÃO IMEDIATA: rollback iniciado via Argo CD\nESCALAR PARA: @relay-core se a rejeição não cair em 10min\n```",
           "tokenUsage": {
             "total": 927,
             "prompt": 833,
@@ -414,7 +414,7 @@
             }
           },
           "cached": false,
-          "latencyMs": 2918,
+          "latencyMs": 2433,
           "finishReason": "stop",
           "cost": 0.00018135,
           "guardrails": {
@@ -431,9 +431,9 @@
                 "cf-ray": "[REDACTED]",
                 "connection": "keep-alive",
                 "content-type": "application/json",
-                "date": "Thu, 25 Jun 2026 22:03:46 GMT",
+                "date": "Fri, 26 Jun 2026 00:53:06 GMT",
                 "openai-organization": "[REDACTED]",
-                "openai-processing-ms": "1430",
+                "openai-processing-ms": "1232",
                 "openai-project": "[REDACTED]",
                 "openai-version": "[REDACTED]",
                 "server": "cloudflare",
@@ -535,9 +535,9 @@
               "cf-ray": "[REDACTED]",
               "connection": "keep-alive",
               "content-type": "application/json",
-              "date": "Thu, 25 Jun 2026 22:03:46 GMT",
+              "date": "Fri, 26 Jun 2026 00:53:06 GMT",
               "openai-organization": "[REDACTED]",
-              "openai-processing-ms": "1430",
+              "openai-processing-ms": "1232",
               "openai-project": "[REDACTED]",
               "openai-version": "[REDACTED]",
               "server": "cloudflare",
@@ -639,8 +639,8 @@
             }
           ]
         },
-        "id": "2e2b53cc-0eb8-4490-bfd7-faae293a63d7",
-        "latencyMs": 2812,
+        "id": "4145f05e-c307-4177-8d97-c8d8fb12cc78",
+        "latencyMs": 2076,
         "namedScores": {},
         "prompt": {
           "raw": "---\r\nnome: \"Nota de Triagem — Sentinel\"\r\ndescricao: \"A partir de um alerta cru do ecossistema Aegis, gera uma nota de triagem padronizada com impacto, hipótese inicial, ação imediata e escalonamento.\"\r\nversao: \"1.0.0\"\r\ntags:\r\n  - sre\r\n  - incident-response\r\n  - triagem\r\n  - sentinel\r\n  - aegis\r\ninputs:\r\n  - nome: alerta_cru\r\n    descricao: \"Alerta bruto recebido do Sentinel, Relay, Forge ou Cerebro, com timestamp, sistema, métrica e contexto do problema\"\r\n---\r\n\r\n# Prompt: Nota de Triagem Padronizada — Aegis\r\n\r\nVocê é um SRE de plantão na Aegis responsável por documentar notas de triagem a partir de alertas crus do Sentinel. Cada nota deve seguir o formato padronizado definido pela Head of Product.\r\n\r\n## Formato de saída obrigatório\r\n\r\nToda nota deve conter exatamente estes 5 campos, nesta ordem:\r\n\r\nALERTA: <título curto do alerta>\r\nIMPACTO: <o que está sendo afetado e em que escala>\r\nHIPÓTESE INICIAL: <possível causa, baseada nos dados disponíveis>\r\nAÇÃO IMEDIATA: <ação que o plantão está tomando agora>\r\nESCALAR PARA: <@time se condição não melhorar em Xmin>\r\n```\r\n\r\n## Exemplos de referência (formato esperado)\r\n\r\nAbaixo estão 3 exemplos de notas que o time considera bem escritas. Use-os como referência de formato, tom e nível de detalhe — não como conteúdo fixo.\r\n\r\n### Exemplo 1\r\n```\r\nALERTA: Relay - taxa de rejeição de ingestão acima de 2% por 5min\r\nIMPACTO: ingestão de telemetry degradada para ~12% dos tenants\r\nHIPÓTESE INICIAL: deploy do Relay às 09:14 reduziu o buffer de ingestão\r\nAÇÃO IMEDIATA: rollback iniciado via Argo CD\r\nESCALAR PARA: @relay-core se a rejeição não cair em 10min\r\n```\r\n\r\n### Exemplo 2\r\n```\r\nALERTA: Forge - lag de ingestão acima de 15min\r\nIMPACTO: dashboards do Sentinel atrasados para todos os tenants\r\nHIPÓTESE INICIAL: pico de volume do tenant acme-corp saturou o consumer\r\nAÇÃO IMEDIATA: aumento manual de partições do consumer do Relay\r\nESCALAR PARA: @data-platform se lag não estabilizar em 20min\r\n```\r\n\r\n### Exemplo 3\r\n```\r\nALERTA: Cerebro - latência de busca p99 acima de 4s\r\nIMPACTO: investigação de incidentes lenta para o time interno\r\nHIPÓTESE INICIAL: reindexação noturna não concluiu antes do horário comercial\r\nAÇÃO IMEDIATA: pausar reindexação e priorizar shard quente\r\nESCALAR PARA: @search-infra se p99 não cair em 15min\r\n```\r\n\r\n## Alerta cru para análise\r\n\r\nAbaixo está o alerta bruto disparado pelo sistema. Analise-o e produza a nota de triagem no formato padronizado acima.\r\n\r\n```\r\n2026-05-13 11:40:22 UTC [Forge] consumer lag 9min and climbing, batch forge-batch-ingest delayed after previous job failure, downstream Sentinel starting to lag\r\n```\r\n\r\n## Regras\r\n\r\n1. O campo `ALERTA:` deve conter o sistema de origem + nome do alerta.\r\n2. O campo `IMPACTO:` deve quantificar o impacto (número de tenants, atraso, percentual).\r\n3. A `HIPÓTESE INICIAL:` deve ser uma explicação plausível, não achismo.\r\n4. A `AÇÃO IMEDIATA:` deve ser algo executável pelo plantão agora.\r\n5. `ESCALAR PARA:` deve conter um handle @time e uma condição clara.\r\n6. Seja concisa: a nota completa não deve ultrapassar 6 linhas.\r\n```\r\n",
@@ -667,7 +667,7 @@
             }
           },
           "cached": false,
-          "latencyMs": 2812,
+          "latencyMs": 2076,
           "finishReason": "stop",
           "cost": 0.00018135,
           "guardrails": {
@@ -684,9 +684,9 @@
                 "cf-ray": "[REDACTED]",
                 "connection": "keep-alive",
                 "content-type": "application/json",
-                "date": "Thu, 25 Jun 2026 22:03:46 GMT",
+                "date": "Fri, 26 Jun 2026 00:53:06 GMT",
                 "openai-organization": "[REDACTED]",
-                "openai-processing-ms": "1412",
+                "openai-processing-ms": "1248",
                 "openai-project": "[REDACTED]",
                 "openai-version": "[REDACTED]",
                 "server": "cloudflare",
@@ -788,9 +788,9 @@
               "cf-ray": "[REDACTED]",
               "connection": "keep-alive",
               "content-type": "application/json",
-              "date": "Thu, 25 Jun 2026 22:03:46 GMT",
+              "date": "Fri, 26 Jun 2026 00:53:06 GMT",
               "openai-organization": "[REDACTED]",
-              "openai-processing-ms": "1412",
+              "openai-processing-ms": "1248",
               "openai-project": "[REDACTED]",
               "openai-version": "[REDACTED]",
               "server": "cloudflare",
@@ -845,8 +845,8 @@
           }
         }
       },
-      "durationMs": 2967,
-      "evaluationDurationMs": 2967
+      "durationMs": 2490,
+      "evaluationDurationMs": 2490
     }
   },
   "config": {
@@ -978,8 +978,8 @@
     "nodeVersion": "v24.11.1",
     "platform": "win32",
     "arch": "x64",
-    "exportedAt": "2026-06-25T22:03:46.696Z",
-    "evaluationCreatedAt": "2026-06-25T22:03:43.557Z",
+    "exportedAt": "2026-06-26T00:53:06.409Z",
+    "evaluationCreatedAt": "2026-06-26T00:53:03.790Z",
     "author": "profjuarez2022@gmail.com"
   },
   "vars": [
