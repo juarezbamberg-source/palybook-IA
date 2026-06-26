@@ -2,7 +2,7 @@
 node_modules/
 
 # Resultados de teste
-#resultados/
+resultados/
 
 # Cache do promptfoo
 .promptfoo/
