@@ -1,0 +1,1171 @@
+{
+  "evalId": "eval-ROq-2026-06-25T22:03:50",
+  "results": {
+    "version": 3,
+    "timestamp": "2026-06-25T22:03:50.689Z",
+    "prompts": [
+      {
+        "raw": "---\r\nnome: \"Triagem de Pods — Sentinel\"\r\ndescricao: \"A partir de um snapshot do cluster Kubernetes, tria pods problemáticos identificando causa provável via cross-referência de status, eventos e logs.\"\r\nversao: \"1.0.0\"\r\ntags:\r\n  - kubernetes\r\n  - sre\r\n  - observabilidade\r\n  - sentinel\r\n  - aegis\r\ninputs:\r\n  - nome: snapshot_pods\r\n    descricao: \"Saída de kubectl get pods -n sentinel-prod com status, restart count e idade dos pods\"\r\n  - nome: snapshot_events\r\n    descricao: \"Saída de kubectl describe pod para cada pod problemático, com eventos e razões\"\r\n  - nome: snapshot_logs\r\n    descricao: \"Saída de kubectl logs dos pods problemáticos, com as últimas linhas antes do erro\"\r\n---\r\n\r\n# Prompt: Triagem de Pods — Sentinel (Aegis)\r\n\r\nVocê é um SRE sênior de plantão na Aegis, responsável por triar pods no namespace `sentinel-prod`. Sua missão é analisar os três blocos de entrada abaixo, identificar pods problemáticos, cruzar evidências de eventos e logs para chegar à causa raiz e recomendar ação concreta para o plantão executar.\r\n\r\n## Blocos de entrada\r\n\r\n1. `{{snapshot_pods}}` — saída do comando `kubectl get pods -n sentinel-prod`.\r\n2. `{{snapshot_events}}` — saída do comando `kubectl describe pod` para cada pod problemático.\r\n3. `{{snapshot_logs}}` — saída do comando `kubectl logs` dos pods problemáticos.\r\n\r\n## Instruções de triagem\r\n\r\n### Passo 1: Identificar pods problemáticos\r\n\r\nAnalise `{{snapshot_pods}}` e marque como problemáticos os pods que atendam a pelo menos um dos critérios:\r\n\r\n- STATUS diferente de `Running`;\r\n- RESTARTS maior que 0 ou crescendo;\r\n- READY inferior ao total esperado (ex.: `0/1` ou `1/2`).\r\n\r\n### Passo 2: Cruzar fontes para chegar à causa raiz\r\n\r\nPara cada pod problemático, examine `{{snapshot_events}}` e `{{snapshot_logs}}`. A causa final não pode ser apenas o STATUS. Você deve cruzar evidências, por exemplo:\r\n\r\n- Evento de `ImagePullBackOff` + log mencionando credencial inválida = falha de autenticação no registry;\r\n- Evento de `CrashLoopBackOff` + log com `OOMKilled` = consumo excessivo de memória;\r\n- Evento de `Pending` + log ausente + evento de scheduling = falta de recurso no node;\r\n- Evento de `Readiness probe failed` + log de aplicação ainda inicializando = falha de health check.\r\n\r\n### Passo 3: Recomendar ação concreta para o plantão\r\n\r\nA ação deve ser imediata e executável pelo plantão, sem exigir análise adicional. Exemplos:\r\n\r\n- Revisar secret `registry-credentials` e forçar recriação do pod;\r\n- Aumentar limite de memória no deployment para 2Gi e reiniciar o rollout;\r\n- Esgotar nós e identificar pod anti-afinidade para liberação de recurso;\r\n- Verificar configuração de readiness probe e ajustar `initialDelaySeconds`.\r\n\r\nSe o incidente exigir escalonamento para um time específico (banco de dados, plataforma, segurança), preencha o campo ESCALAR com `@time`.\r\n\r\n## Formato de saída obrigatório\r\n\r\n## Triagem — {{timestamp}}\r\n\r\n### Pods problemáticos: [N]\r\n\r\n***\r\n\r\n[POD] nome-do-pod  \r\nSTATUS: <status atual>  \r\nCAUSA: <causa raiz com evidência>  \r\n\r\nEVIDÊNCIA:\r\n- \r\n- \r\nAÇÃO: <próxima ação>  \r\nESCALAR: <@time se aplicável>\r\n\r\n***\r\n\r\nSe nenhum pod problemático for detectado, retorne apenas a linha abaixo, sem cabeçalhos adicionais:\r\n\r\nNenhum pod problemático detectado.",
+        "label": "devops\\triagem-de-pods\\prompt.md: ---\r\nnome: \"Triagem de Pods — Sentinel\"\r\ndescricao...",
+        "id": "31e78de94c7a81fa2dba0e75b20cd52226b63fa146e646c4a505e1b3439c552b",
+        "provider": "openai:gpt-4o-mini",
+        "metrics": {
+          "score": 4,
+          "testPassCount": 4,
+          "testFailCount": 0,
+          "testErrorCount": 0,
+          "assertPassCount": 16,
+          "assertFailCount": 0,
+          "totalLatencyMs": 11668,
+          "tokenUsage": {
+            "prompt": 5011,
+            "completion": 561,
+            "cached": 0,
+            "total": 5572,
+            "numRequests": 4,
+            "completionDetails": {
+              "reasoning": 0,
+              "acceptedPrediction": 0,
+              "rejectedPrediction": 0,
+              "cacheReadInputTokens": 0,
+              "cacheCreationInputTokens": 0
+            },
+            "assertions": {
+              "total": 0,
+              "prompt": 0,
+              "completion": 0,
+              "cached": 0,
+              "numRequests": 0,
+              "completionDetails": {
+                "reasoning": 0,
+                "acceptedPrediction": 0,
+                "rejectedPrediction": 0,
+                "cacheReadInputTokens": 0,
+                "cacheCreationInputTokens": 0
+              }
+            }
+          },
+          "namedScores": {},
+          "namedScoresCount": {},
+          "namedScoreWeights": {},
+          "cost": 0.0010882499999999998
+        }
+      }
+    ],
+    "results": [
+      {
+        "cost": 0.0003609,
+        "gradingResult": {
+          "pass": true,
+          "score": 1,
+          "reason": "All assertions passed",
+          "namedScores": {},
+          "tokensUsed": {
+            "total": 0,
+            "prompt": 0,
+            "completion": 0,
+            "cached": 0,
+            "numRequests": 0
+          },
+          "componentResults": [
+            {
+              "pass": true,
+              "score": 1,
+              "reason": "Assertion passed",
+              "assertion": {
+                "type": "icontains",
+                "value": "triagem"
+              }
+            },
+            {
+              "pass": true,
+              "score": 1,
+              "reason": "Assertion passed",
+              "assertion": {
+                "type": "icontains",
+                "value": "pods problemáticos"
+              }
+            },
+            {
+              "pass": true,
+              "score": 1,
+              "reason": "Assertion passed",
+              "assertion": {
+                "type": "icontains",
+                "value": "sentinel-api-7d9c8b6f4-h4m2t"
+              }
+            },
+            {
+              "pass": true,
+              "score": 1,
+              "reason": "Assertion passed",
+              "assertion": {
+                "type": "icontains",
+                "value": "crashloopbackoff"
+              }
+            },
+            {
+              "pass": true,
+              "score": 1,
+              "reason": "Assertion passed",
+              "assertion": {
+                "type": "regex",
+                "value": "(OOMKilled|OOM|[Oo]ut\\s*of|mem.ria|Exit Code:?\\s*137|exit.code.137)"
+              }
+            }
+          ]
+        },
+        "id": "253ad233-ecf6-4c39-b23e-1060924cd5b8",
+        "latencyMs": 3277,
+        "namedScores": {},
+        "prompt": {
+          "raw": "---\r\nnome: \"Triagem de Pods — Sentinel\"\r\ndescricao: \"A partir de um snapshot do cluster Kubernetes, tria pods problemáticos identificando causa provável via cross-referência de status, eventos e logs.\"\r\nversao: \"1.0.0\"\r\ntags:\r\n  - kubernetes\r\n  - sre\r\n  - observabilidade\r\n  - sentinel\r\n  - aegis\r\ninputs:\r\n  - nome: snapshot_pods\r\n    descricao: \"Saída de kubectl get pods -n sentinel-prod com status, restart count e idade dos pods\"\r\n  - nome: snapshot_events\r\n    descricao: \"Saída de kubectl describe pod para cada pod problemático, com eventos e razões\"\r\n  - nome: snapshot_logs\r\n    descricao: \"Saída de kubectl logs dos pods problemáticos, com as últimas linhas antes do erro\"\r\n---\r\n\r\n# Prompt: Triagem de Pods — Sentinel (Aegis)\r\n\r\nVocê é um SRE sênior de plantão na Aegis, responsável por triar pods no namespace `sentinel-prod`. Sua missão é analisar os três blocos de entrada abaixo, identificar pods problemáticos, cruzar evidências de eventos e logs para chegar à causa raiz e recomendar ação concreta para o plantão executar.\r\n\r\n## Blocos de entrada\r\n\r\n1. `NAME                             READY   STATUS             RESTARTS       AGE\nsentinel-api-7d9c8b6f4-2xk9p     1/1     Running            0              6d\nsentinel-api-7d9c8b6f4-h4m2t     0/1     CrashLoopBackOff   14 (90s ago)   42m\nsentinel-worker-5b8f9c8d-jq7rs   1/1     Running            0              6d\nsentinel-scheduler-6c4d7f-nn8vx  1/1     Running            0              6d` — saída do comando `kubectl get pods -n sentinel-prod`.\r\n2. `Name: sentinel-api-7d9c8b6f4-h4m2t\nState:          Waiting\n  Reason:       CrashLoopBackOff\nLast State:     Terminated\n  Reason:       OOMKilled\n  Exit Code:    137\nLimits:\n  memory: 512Mi\nRequests:\n  memory: 256Mi\nEvents:\n  Type     Reason   Age                From     Message\n  ----     ------   ----               ----     -------\n  Warning  BackOff  2m (x18 over 40m)  kubelet  Back-off restarting failed container api` — saída do comando `kubectl describe pod` para cada pod problemático.\r\n3. `2026-05-13 10:14:02 [INFO]  [api] startup complete, version 2.9.1\n2026-05-13 10:14:48 [INFO]  [cache] loading 6h alert cache (heap 410Mi/512Mi)\n2026-05-13 10:15:10 [WARN]  [runtime] high GC pressure, heap 498Mi/512Mi\n2026-05-13 10:15:12 [FATAL] [runtime] out of memory, shutting down process` — saída do comando `kubectl logs` dos pods problemáticos.\r\n\r\n## Instruções de triagem\r\n\r\n### Passo 1: Identificar pods problemáticos\r\n\r\nAnalise `NAME                             READY   STATUS             RESTARTS       AGE\nsentinel-api-7d9c8b6f4-2xk9p     1/1     Running            0              6d\nsentinel-api-7d9c8b6f4-h4m2t     0/1     CrashLoopBackOff   14 (90s ago)   42m\nsentinel-worker-5b8f9c8d-jq7rs   1/1     Running            0              6d\nsentinel-scheduler-6c4d7f-nn8vx  1/1     Running            0              6d` e marque como problemáticos os pods que atendam a pelo menos um dos critérios:\r\n\r\n- STATUS diferente de `Running`;\r\n- RESTARTS maior que 0 ou crescendo;\r\n- READY inferior ao total esperado (ex.: `0/1` ou `1/2`).\r\n\r\n### Passo 2: Cruzar fontes para chegar à causa raiz\r\n\r\nPara cada pod problemático, examine `Name: sentinel-api-7d9c8b6f4-h4m2t\nState:          Waiting\n  Reason:       CrashLoopBackOff\nLast State:     Terminated\n  Reason:       OOMKilled\n  Exit Code:    137\nLimits:\n  memory: 512Mi\nRequests:\n  memory: 256Mi\nEvents:\n  Type     Reason   Age                From     Message\n  ----     ------   ----               ----     -------\n  Warning  BackOff  2m (x18 over 40m)  kubelet  Back-off restarting failed container api` e `2026-05-13 10:14:02 [INFO]  [api] startup complete, version 2.9.1\n2026-05-13 10:14:48 [INFO]  [cache] loading 6h alert cache (heap 410Mi/512Mi)\n2026-05-13 10:15:10 [WARN]  [runtime] high GC pressure, heap 498Mi/512Mi\n2026-05-13 10:15:12 [FATAL] [runtime] out of memory, shutting down process`. A causa final não pode ser apenas o STATUS. Você deve cruzar evidências, por exemplo:\r\n\r\n- Evento de `ImagePullBackOff` + log mencionando credencial inválida = falha de autenticação no registry;\r\n- Evento de `CrashLoopBackOff` + log com `OOMKilled` = consumo excessivo de memória;\r\n- Evento de `Pending` + log ausente + evento de scheduling = falta de recurso no node;\r\n- Evento de `Readiness probe failed` + log de aplicação ainda inicializando = falha de health check.\r\n\r\n### Passo 3: Recomendar ação concreta para o plantão\r\n\r\nA ação deve ser imediata e executável pelo plantão, sem exigir análise adicional. Exemplos:\r\n\r\n- Revisar secret `registry-credentials` e forçar recriação do pod;\r\n- Aumentar limite de memória no deployment para 2Gi e reiniciar o rollout;\r\n- Esgotar nós e identificar pod anti-afinidade para liberação de recurso;\r\n- Verificar configuração de readiness probe e ajustar `initialDelaySeconds`.\r\n\r\nSe o incidente exigir escalonamento para um time específico (banco de dados, plataforma, segurança), preencha o campo ESCALAR com `@time`.\r\n\r\n## Formato de saída obrigatório\r\n\r\n## Triagem — 2026-05-13 10:20 UTC\r\n\r\n### Pods problemáticos: [N]\r\n\r\n***\r\n\r\n[POD] nome-do-pod  \r\nSTATUS: <status atual>  \r\nCAUSA: <causa raiz com evidência>  \r\n\r\nEVIDÊNCIA:\r\n- \r\n- \r\nAÇÃO: <próxima ação>  \r\nESCALAR: <@time se aplicável>\r\n\r\n***\r\n\r\nSe nenhum pod problemático for detectado, retorne apenas a linha abaixo, sem cabeçalhos adicionais:\r\n\r\nNenhum pod problemático detectado.",
+          "label": "devops\\triagem-de-pods\\prompt.md: ---\r\nnome: \"Triagem de Pods — Sentinel\"\r\ndescricao...",
+          "config": {
+            "provider": {
+              "temperature": 0
+            }
+          }
+        },
+        "promptId": "31e78de94c7a81fa2dba0e75b20cd52226b63fa146e646c4a505e1b3439c552b",
+        "promptIdx": 0,
+        "provider": {
+          "id": "openai:gpt-4o-mini",
+          "label": ""
+        },
+        "response": {
+          "output": "## Triagem — 2026-05-13 10:20 UTC\r\n\r\n### Pods problemáticos: [1]\r\n\r\n***\r\n\r\n[POD] sentinel-api-7d9c8b6f4-h4m2t  \r\nSTATUS: CrashLoopBackOff  \r\nCAUSA: O pod está enfrentando um problema de consumo excessivo de memória, resultando em OOMKilled (Out of Memory). Os logs indicam que o heap de memória está próximo do limite definido, e o evento de `CrashLoopBackOff` confirma que o container falhou repetidamente devido a isso.  \r\n\r\nEVIDÊNCIA:\r\n- Evento: `CrashLoopBackOff` e `OOMKilled` com Exit Code 137.\r\n- Log: `high GC pressure, heap 498Mi/512Mi` e `out of memory, shutting down process`.  \r\n\r\nAÇÃO: Aumentar limite de memória no deployment para 1Gi e reiniciar o rollout.  \r\nESCALAR: Nenhum escalonamento necessário.",
+          "tokenUsage": {
+            "total": 1797,
+            "prompt": 1594,
+            "completion": 203,
+            "numRequests": 1,
+            "completionDetails": {
+              "reasoning": 0,
+              "acceptedPrediction": 0,
+              "rejectedPrediction": 0
+            }
+          },
+          "cached": false,
+          "latencyMs": 3277,
+          "finishReason": "stop",
+          "cost": 0.0003609,
+          "guardrails": {
+            "flagged": false
+          },
+          "metadata": {
+            "http": {
+              "status": 200,
+              "statusText": "OK",
+              "headers": {
+                "access-control-expose-headers": "X-Request-ID,CF-Ray,CF-Ray",
+                "alt-svc": "h3=\":443\"; ma=86400",
+                "cf-cache-status": "[REDACTED]",
+                "cf-ray": "[REDACTED]",
+                "connection": "keep-alive",
+                "content-type": "application/json",
+                "date": "Thu, 25 Jun 2026 22:03:54 GMT",
+                "openai-organization": "[REDACTED]",
+                "openai-processing-ms": "3028",
+                "openai-project": "[REDACTED]",
+                "openai-version": "[REDACTED]",
+                "server": "cloudflare",
+                "set-cookie": "[REDACTED]",
+                "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+                "transfer-encoding": "chunked",
+                "x-content-type-options": "nosniff",
+                "x-openai-proxy-wasm": "[REDACTED]",
+                "x-ratelimit-limit-requests": "[REDACTED]",
+                "x-ratelimit-limit-tokens": "[REDACTED]",
+                "x-ratelimit-remaining-requests": "[REDACTED]",
+                "x-ratelimit-remaining-tokens": "[REDACTED]",
+                "x-ratelimit-reset-requests": "[REDACTED]",
+                "x-ratelimit-reset-tokens": "[REDACTED]",
+                "x-request-id": "[REDACTED]"
+              }
+            }
+          }
+        },
+        "score": 1,
+        "success": true,
+        "testCase": {
+          "description": "Detecta CrashLoopBackOff por OOMKilled e recomenda ação concreta",
+          "vars": {
+            "timestamp": "2026-05-13 10:20 UTC",
+            "snapshot_pods": "NAME                             READY   STATUS             RESTARTS       AGE\nsentinel-api-7d9c8b6f4-2xk9p     1/1     Running            0              6d\nsentinel-api-7d9c8b6f4-h4m2t     0/1     CrashLoopBackOff   14 (90s ago)   42m\nsentinel-worker-5b8f9c8d-jq7rs   1/1     Running            0              6d\nsentinel-scheduler-6c4d7f-nn8vx  1/1     Running            0              6d\n",
+            "snapshot_events": "Name: sentinel-api-7d9c8b6f4-h4m2t\nState:          Waiting\n  Reason:       CrashLoopBackOff\nLast State:     Terminated\n  Reason:       OOMKilled\n  Exit Code:    137\nLimits:\n  memory: 512Mi\nRequests:\n  memory: 256Mi\nEvents:\n  Type     Reason   Age                From     Message\n  ----     ------   ----               ----     -------\n  Warning  BackOff  2m (x18 over 40m)  kubelet  Back-off restarting failed container api\n",
+            "snapshot_logs": "2026-05-13 10:14:02 [INFO]  [api] startup complete, version 2.9.1\n2026-05-13 10:14:48 [INFO]  [cache] loading 6h alert cache (heap 410Mi/512Mi)\n2026-05-13 10:15:10 [WARN]  [runtime] high GC pressure, heap 498Mi/512Mi\n2026-05-13 10:15:12 [FATAL] [runtime] out of memory, shutting down process\n"
+          },
+          "assert": [
+            {
+              "type": "icontains",
+              "value": "triagem"
+            },
+            {
+              "type": "icontains",
+              "value": "pods problemáticos"
+            },
+            {
+              "type": "icontains",
+              "value": "sentinel-api-7d9c8b6f4-h4m2t"
+            },
+            {
+              "type": "icontains",
+              "value": "crashloopbackoff"
+            },
+            {
+              "type": "regex",
+              "value": "(OOMKilled|OOM|[Oo]ut\\s*of|mem.ria|Exit Code:?\\s*137|exit.code.137)"
+            }
+          ],
+          "options": {
+            "provider": {
+              "temperature": 0
+            }
+          },
+          "metadata": {}
+        },
+        "testIdx": 0,
+        "tokenUsage": {
+          "prompt": 1594,
+          "completion": 203,
+          "cached": 0,
+          "total": 1797,
+          "numRequests": 1,
+          "completionDetails": {
+            "reasoning": 0,
+            "acceptedPrediction": 0,
+            "rejectedPrediction": 0,
+            "cacheReadInputTokens": 0,
+            "cacheCreationInputTokens": 0
+          },
+          "assertions": {
+            "total": 0,
+            "prompt": 0,
+            "completion": 0,
+            "cached": 0,
+            "numRequests": 1,
+            "completionDetails": {
+              "reasoning": 0,
+              "acceptedPrediction": 0,
+              "rejectedPrediction": 0,
+              "cacheReadInputTokens": 0,
+              "cacheCreationInputTokens": 0
+            }
+          }
+        },
+        "vars": {
+          "timestamp": "2026-05-13 10:20 UTC",
+          "snapshot_pods": "NAME                             READY   STATUS             RESTARTS       AGE\nsentinel-api-7d9c8b6f4-2xk9p     1/1     Running            0              6d\nsentinel-api-7d9c8b6f4-h4m2t     0/1     CrashLoopBackOff   14 (90s ago)   42m\nsentinel-worker-5b8f9c8d-jq7rs   1/1     Running            0              6d\nsentinel-scheduler-6c4d7f-nn8vx  1/1     Running            0              6d\n",
+          "snapshot_events": "Name: sentinel-api-7d9c8b6f4-h4m2t\nState:          Waiting\n  Reason:       CrashLoopBackOff\nLast State:     Terminated\n  Reason:       OOMKilled\n  Exit Code:    137\nLimits:\n  memory: 512Mi\nRequests:\n  memory: 256Mi\nEvents:\n  Type     Reason   Age                From     Message\n  ----     ------   ----               ----     -------\n  Warning  BackOff  2m (x18 over 40m)  kubelet  Back-off restarting failed container api\n",
+          "snapshot_logs": "2026-05-13 10:14:02 [INFO]  [api] startup complete, version 2.9.1\n2026-05-13 10:14:48 [INFO]  [cache] loading 6h alert cache (heap 410Mi/512Mi)\n2026-05-13 10:15:10 [WARN]  [runtime] high GC pressure, heap 498Mi/512Mi\n2026-05-13 10:15:12 [FATAL] [runtime] out of memory, shutting down process\n"
+        },
+        "metadata": {
+          "http": {
+            "status": 200,
+            "statusText": "OK",
+            "headers": {
+              "access-control-expose-headers": "X-Request-ID,CF-Ray,CF-Ray",
+              "alt-svc": "h3=\":443\"; ma=86400",
+              "cf-cache-status": "[REDACTED]",
+              "cf-ray": "[REDACTED]",
+              "connection": "keep-alive",
+              "content-type": "application/json",
+              "date": "Thu, 25 Jun 2026 22:03:54 GMT",
+              "openai-organization": "[REDACTED]",
+              "openai-processing-ms": "3028",
+              "openai-project": "[REDACTED]",
+              "openai-version": "[REDACTED]",
+              "server": "cloudflare",
+              "set-cookie": "[REDACTED]",
+              "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+              "transfer-encoding": "chunked",
+              "x-content-type-options": "nosniff",
+              "x-openai-proxy-wasm": "[REDACTED]",
+              "x-ratelimit-limit-requests": "[REDACTED]",
+              "x-ratelimit-limit-tokens": "[REDACTED]",
+              "x-ratelimit-remaining-requests": "[REDACTED]",
+              "x-ratelimit-remaining-tokens": "[REDACTED]",
+              "x-ratelimit-reset-requests": "[REDACTED]",
+              "x-ratelimit-reset-tokens": "[REDACTED]",
+              "x-request-id": "[REDACTED]"
+            }
+          },
+          "_promptfooFileMetadata": {}
+        },
+        "failureReason": 0
+      },
+      {
+        "cost": 0.00029475,
+        "gradingResult": {
+          "pass": true,
+          "score": 1,
+          "reason": "All assertions passed",
+          "namedScores": {},
+          "tokensUsed": {
+            "total": 0,
+            "prompt": 0,
+            "completion": 0,
+            "cached": 0,
+            "numRequests": 0
+          },
+          "componentResults": [
+            {
+              "pass": true,
+              "score": 1,
+              "reason": "Assertion passed",
+              "assertion": {
+                "type": "contains",
+                "value": "[POD] sentinel-api-77f4d8d67c-mv2k9"
+              }
+            },
+            {
+              "pass": true,
+              "score": 1,
+              "reason": "Assertion passed",
+              "assertion": {
+                "type": "contains",
+                "value": "ImagePullBackOff"
+              }
+            },
+            {
+              "pass": true,
+              "score": 1,
+              "reason": "Assertion passed",
+              "assertion": {
+                "type": "icontains",
+                "value": "autenticação"
+              }
+            },
+            {
+              "pass": true,
+              "score": 1,
+              "reason": "Assertion passed",
+              "assertion": {
+                "type": "icontains",
+                "value": "registry"
+              }
+            },
+            {
+              "pass": true,
+              "score": 1,
+              "reason": "Assertion passed",
+              "assertion": {
+                "type": "icontains",
+                "value": "secret"
+              }
+            }
+          ]
+        },
+        "id": "110e1ea1-1dc1-4bc8-9b08-881991729794",
+        "latencyMs": 4235,
+        "namedScores": {},
+        "prompt": {
+          "raw": "---\r\nnome: \"Triagem de Pods — Sentinel\"\r\ndescricao: \"A partir de um snapshot do cluster Kubernetes, tria pods problemáticos identificando causa provável via cross-referência de status, eventos e logs.\"\r\nversao: \"1.0.0\"\r\ntags:\r\n  - kubernetes\r\n  - sre\r\n  - observabilidade\r\n  - sentinel\r\n  - aegis\r\ninputs:\r\n  - nome: snapshot_pods\r\n    descricao: \"Saída de kubectl get pods -n sentinel-prod com status, restart count e idade dos pods\"\r\n  - nome: snapshot_events\r\n    descricao: \"Saída de kubectl describe pod para cada pod problemático, com eventos e razões\"\r\n  - nome: snapshot_logs\r\n    descricao: \"Saída de kubectl logs dos pods problemáticos, com as últimas linhas antes do erro\"\r\n---\r\n\r\n# Prompt: Triagem de Pods — Sentinel (Aegis)\r\n\r\nVocê é um SRE sênior de plantão na Aegis, responsável por triar pods no namespace `sentinel-prod`. Sua missão é analisar os três blocos de entrada abaixo, identificar pods problemáticos, cruzar evidências de eventos e logs para chegar à causa raiz e recomendar ação concreta para o plantão executar.\r\n\r\n## Blocos de entrada\r\n\r\n1. `NAME                               READY   STATUS             RESTARTS   AGE\nsentinel-api-77f4d8d67c-mv2k9      0/1     ImagePullBackOff   0          9m\nsentinel-worker-5b8f9c8d-jq7rs     1/1     Running            0          6d` — saída do comando `kubectl get pods -n sentinel-prod`.\r\n2. `Name: sentinel-api-77f4d8d67c-mv2k9\nState:          Waiting\n  Reason:       ImagePullBackOff\nEvents:\n  Type     Reason      Age   From     Message\n  ----     ------      ----  ----     -------\n  Warning  Failed      3m    kubelet  Failed to pull image \"registry.aegis.local/sentinel/api:2.9.2\": unauthorized: authentication required\n  Warning  BackOff     2m    kubelet  Back-off pulling image \"registry.aegis.local/sentinel/api:2.9.2\"` — saída do comando `kubectl describe pod` para cada pod problemático.\r\n3. `Sem logs disponíveis porque o container não iniciou.` — saída do comando `kubectl logs` dos pods problemáticos.\r\n\r\n## Instruções de triagem\r\n\r\n### Passo 1: Identificar pods problemáticos\r\n\r\nAnalise `NAME                               READY   STATUS             RESTARTS   AGE\nsentinel-api-77f4d8d67c-mv2k9      0/1     ImagePullBackOff   0          9m\nsentinel-worker-5b8f9c8d-jq7rs     1/1     Running            0          6d` e marque como problemáticos os pods que atendam a pelo menos um dos critérios:\r\n\r\n- STATUS diferente de `Running`;\r\n- RESTARTS maior que 0 ou crescendo;\r\n- READY inferior ao total esperado (ex.: `0/1` ou `1/2`).\r\n\r\n### Passo 2: Cruzar fontes para chegar à causa raiz\r\n\r\nPara cada pod problemático, examine `Name: sentinel-api-77f4d8d67c-mv2k9\nState:          Waiting\n  Reason:       ImagePullBackOff\nEvents:\n  Type     Reason      Age   From     Message\n  ----     ------      ----  ----     -------\n  Warning  Failed      3m    kubelet  Failed to pull image \"registry.aegis.local/sentinel/api:2.9.2\": unauthorized: authentication required\n  Warning  BackOff     2m    kubelet  Back-off pulling image \"registry.aegis.local/sentinel/api:2.9.2\"` e `Sem logs disponíveis porque o container não iniciou.`. A causa final não pode ser apenas o STATUS. Você deve cruzar evidências, por exemplo:\r\n\r\n- Evento de `ImagePullBackOff` + log mencionando credencial inválida = falha de autenticação no registry;\r\n- Evento de `CrashLoopBackOff` + log com `OOMKilled` = consumo excessivo de memória;\r\n- Evento de `Pending` + log ausente + evento de scheduling = falta de recurso no node;\r\n- Evento de `Readiness probe failed` + log de aplicação ainda inicializando = falha de health check.\r\n\r\n### Passo 3: Recomendar ação concreta para o plantão\r\n\r\nA ação deve ser imediata e executável pelo plantão, sem exigir análise adicional. Exemplos:\r\n\r\n- Revisar secret `registry-credentials` e forçar recriação do pod;\r\n- Aumentar limite de memória no deployment para 2Gi e reiniciar o rollout;\r\n- Esgotar nós e identificar pod anti-afinidade para liberação de recurso;\r\n- Verificar configuração de readiness probe e ajustar `initialDelaySeconds`.\r\n\r\nSe o incidente exigir escalonamento para um time específico (banco de dados, plataforma, segurança), preencha o campo ESCALAR com `@time`.\r\n\r\n## Formato de saída obrigatório\r\n\r\n## Triagem — 2026-05-13 11:00 UTC\r\n\r\n### Pods problemáticos: [N]\r\n\r\n***\r\n\r\n[POD] nome-do-pod  \r\nSTATUS: <status atual>  \r\nCAUSA: <causa raiz com evidência>  \r\n\r\nEVIDÊNCIA:\r\n- \r\n- \r\nAÇÃO: <próxima ação>  \r\nESCALAR: <@time se aplicável>\r\n\r\n***\r\n\r\nSe nenhum pod problemático for detectado, retorne apenas a linha abaixo, sem cabeçalhos adicionais:\r\n\r\nNenhum pod problemático detectado.",
+          "label": "devops\\triagem-de-pods\\prompt.md: ---\r\nnome: \"Triagem de Pods — Sentinel\"\r\ndescricao...",
+          "config": {
+            "provider": {
+              "temperature": 0
+            }
+          }
+        },
+        "promptId": "31e78de94c7a81fa2dba0e75b20cd52226b63fa146e646c4a505e1b3439c552b",
+        "promptIdx": 0,
+        "provider": {
+          "id": "openai:gpt-4o-mini",
+          "label": ""
+        },
+        "response": {
+          "output": "## Triagem — 2026-05-13 11:00 UTC\r\n\r\n### Pods problemáticos: [1]\r\n\r\n***\r\n\r\n[POD] sentinel-api-77f4d8d67c-mv2k9  \r\nSTATUS: ImagePullBackOff  \r\nCAUSA: Falha ao puxar a imagem devido a autenticação não autorizada no registry. Evidência: Evento de `ImagePullBackOff` com mensagem \"unauthorized: authentication required\".  \r\n\r\nEVIDÊNCIA:\r\n- Evento de `Failed` indicando falha ao puxar a imagem \"registry.aegis.local/sentinel/api:2.9.2\".\r\n- Evento de `BackOff` indicando que o kubelet está tentando novamente puxar a imagem após a falha inicial.\r\n\r\nAÇÃO: Revisar secret `registry-credentials` e forçar recriação do pod.  \r\nESCALAR: <não aplicável>  \r\n\r\n***",
+          "tokenUsage": {
+            "total": 1413,
+            "prompt": 1229,
+            "completion": 184,
+            "numRequests": 1,
+            "completionDetails": {
+              "reasoning": 0,
+              "acceptedPrediction": 0,
+              "rejectedPrediction": 0
+            }
+          },
+          "cached": false,
+          "latencyMs": 4235,
+          "finishReason": "stop",
+          "cost": 0.00029475,
+          "guardrails": {
+            "flagged": false
+          },
+          "metadata": {
+            "http": {
+              "status": 200,
+              "statusText": "OK",
+              "headers": {
+                "access-control-expose-headers": "X-Request-ID,CF-Ray,CF-Ray",
+                "alt-svc": "h3=\":443\"; ma=86400",
+                "cf-cache-status": "[REDACTED]",
+                "cf-ray": "[REDACTED]",
+                "connection": "keep-alive",
+                "content-type": "application/json",
+                "date": "Thu, 25 Jun 2026 22:03:55 GMT",
+                "openai-organization": "[REDACTED]",
+                "openai-processing-ms": "3658",
+                "openai-project": "[REDACTED]",
+                "openai-version": "[REDACTED]",
+                "server": "cloudflare",
+                "set-cookie": "[REDACTED]",
+                "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+                "transfer-encoding": "chunked",
+                "x-content-type-options": "nosniff",
+                "x-openai-proxy-wasm": "[REDACTED]",
+                "x-ratelimit-limit-requests": "[REDACTED]",
+                "x-ratelimit-limit-tokens": "[REDACTED]",
+                "x-ratelimit-remaining-requests": "[REDACTED]",
+                "x-ratelimit-remaining-tokens": "[REDACTED]",
+                "x-ratelimit-reset-requests": "[REDACTED]",
+                "x-ratelimit-reset-tokens": "[REDACTED]",
+                "x-request-id": "[REDACTED]"
+              }
+            }
+          }
+        },
+        "score": 1,
+        "success": true,
+        "testCase": {
+          "description": "Detecta ImagePullBackOff e aponta falha de autenticação no registry",
+          "vars": {
+            "timestamp": "2026-05-13 11:00 UTC",
+            "snapshot_pods": "NAME                               READY   STATUS             RESTARTS   AGE\nsentinel-api-77f4d8d67c-mv2k9      0/1     ImagePullBackOff   0          9m\nsentinel-worker-5b8f9c8d-jq7rs     1/1     Running            0          6d\n",
+            "snapshot_events": "Name: sentinel-api-77f4d8d67c-mv2k9\nState:          Waiting\n  Reason:       ImagePullBackOff\nEvents:\n  Type     Reason      Age   From     Message\n  ----     ------      ----  ----     -------\n  Warning  Failed      3m    kubelet  Failed to pull image \"registry.aegis.local/sentinel/api:2.9.2\": unauthorized: authentication required\n  Warning  BackOff     2m    kubelet  Back-off pulling image \"registry.aegis.local/sentinel/api:2.9.2\"\n",
+            "snapshot_logs": "Sem logs disponíveis porque o container não iniciou.\n"
+          },
+          "assert": [
+            {
+              "type": "contains",
+              "value": "[POD] sentinel-api-77f4d8d67c-mv2k9"
+            },
+            {
+              "type": "contains",
+              "value": "ImagePullBackOff"
+            },
+            {
+              "type": "icontains",
+              "value": "autenticação"
+            },
+            {
+              "type": "icontains",
+              "value": "registry"
+            },
+            {
+              "type": "icontains",
+              "value": "secret"
+            }
+          ],
+          "options": {
+            "provider": {
+              "temperature": 0
+            }
+          },
+          "metadata": {}
+        },
+        "testIdx": 1,
+        "tokenUsage": {
+          "prompt": 1229,
+          "completion": 184,
+          "cached": 0,
+          "total": 1413,
+          "numRequests": 1,
+          "completionDetails": {
+            "reasoning": 0,
+            "acceptedPrediction": 0,
+            "rejectedPrediction": 0,
+            "cacheReadInputTokens": 0,
+            "cacheCreationInputTokens": 0
+          },
+          "assertions": {
+            "total": 0,
+            "prompt": 0,
+            "completion": 0,
+            "cached": 0,
+            "numRequests": 1,
+            "completionDetails": {
+              "reasoning": 0,
+              "acceptedPrediction": 0,
+              "rejectedPrediction": 0,
+              "cacheReadInputTokens": 0,
+              "cacheCreationInputTokens": 0
+            }
+          }
+        },
+        "vars": {
+          "timestamp": "2026-05-13 11:00 UTC",
+          "snapshot_pods": "NAME                               READY   STATUS             RESTARTS   AGE\nsentinel-api-77f4d8d67c-mv2k9      0/1     ImagePullBackOff   0          9m\nsentinel-worker-5b8f9c8d-jq7rs     1/1     Running            0          6d\n",
+          "snapshot_events": "Name: sentinel-api-77f4d8d67c-mv2k9\nState:          Waiting\n  Reason:       ImagePullBackOff\nEvents:\n  Type     Reason      Age   From     Message\n  ----     ------      ----  ----     -------\n  Warning  Failed      3m    kubelet  Failed to pull image \"registry.aegis.local/sentinel/api:2.9.2\": unauthorized: authentication required\n  Warning  BackOff     2m    kubelet  Back-off pulling image \"registry.aegis.local/sentinel/api:2.9.2\"\n",
+          "snapshot_logs": "Sem logs disponíveis porque o container não iniciou.\n"
+        },
+        "metadata": {
+          "http": {
+            "status": 200,
+            "statusText": "OK",
+            "headers": {
+              "access-control-expose-headers": "X-Request-ID,CF-Ray,CF-Ray",
+              "alt-svc": "h3=\":443\"; ma=86400",
+              "cf-cache-status": "[REDACTED]",
+              "cf-ray": "[REDACTED]",
+              "connection": "keep-alive",
+              "content-type": "application/json",
+              "date": "Thu, 25 Jun 2026 22:03:55 GMT",
+              "openai-organization": "[REDACTED]",
+              "openai-processing-ms": "3658",
+              "openai-project": "[REDACTED]",
+              "openai-version": "[REDACTED]",
+              "server": "cloudflare",
+              "set-cookie": "[REDACTED]",
+              "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+              "transfer-encoding": "chunked",
+              "x-content-type-options": "nosniff",
+              "x-openai-proxy-wasm": "[REDACTED]",
+              "x-ratelimit-limit-requests": "[REDACTED]",
+              "x-ratelimit-limit-tokens": "[REDACTED]",
+              "x-ratelimit-remaining-requests": "[REDACTED]",
+              "x-ratelimit-remaining-tokens": "[REDACTED]",
+              "x-ratelimit-reset-requests": "[REDACTED]",
+              "x-ratelimit-reset-tokens": "[REDACTED]",
+              "x-request-id": "[REDACTED]"
+            }
+          },
+          "_promptfooFileMetadata": {}
+        },
+        "failureReason": 0
+      },
+      {
+        "cost": 0.00026115,
+        "gradingResult": {
+          "pass": true,
+          "score": 1,
+          "reason": "All assertions passed",
+          "namedScores": {},
+          "tokensUsed": {
+            "total": 0,
+            "prompt": 0,
+            "completion": 0,
+            "cached": 0,
+            "numRequests": 0
+          },
+          "componentResults": [
+            {
+              "pass": true,
+              "score": 1,
+              "reason": "Assertion passed",
+              "assertion": {
+                "type": "contains",
+                "value": "[POD] sentinel-worker-7f9bb6f5d9-kq2xr"
+              }
+            },
+            {
+              "pass": true,
+              "score": 1,
+              "reason": "Assertion passed",
+              "assertion": {
+                "type": "contains",
+                "value": "Pending"
+              }
+            },
+            {
+              "pass": true,
+              "score": 1,
+              "reason": "Assertion passed",
+              "assertion": {
+                "type": "icontains",
+                "value": "Insufficient cpu"
+              }
+            },
+            {
+              "pass": true,
+              "score": 1,
+              "reason": "Assertion passed",
+              "assertion": {
+                "type": "icontains",
+                "value": "falta de recurso"
+              }
+            },
+            {
+              "pass": true,
+              "score": 1,
+              "reason": "Assertion passed",
+              "assertion": {
+                "type": "icontains",
+                "value": "node"
+              }
+            }
+          ]
+        },
+        "id": "20ccde73-2250-4ea0-ad85-db0f9f9763d3",
+        "latencyMs": 2740,
+        "namedScores": {},
+        "prompt": {
+          "raw": "---\r\nnome: \"Triagem de Pods — Sentinel\"\r\ndescricao: \"A partir de um snapshot do cluster Kubernetes, tria pods problemáticos identificando causa provável via cross-referência de status, eventos e logs.\"\r\nversao: \"1.0.0\"\r\ntags:\r\n  - kubernetes\r\n  - sre\r\n  - observabilidade\r\n  - sentinel\r\n  - aegis\r\ninputs:\r\n  - nome: snapshot_pods\r\n    descricao: \"Saída de kubectl get pods -n sentinel-prod com status, restart count e idade dos pods\"\r\n  - nome: snapshot_events\r\n    descricao: \"Saída de kubectl describe pod para cada pod problemático, com eventos e razões\"\r\n  - nome: snapshot_logs\r\n    descricao: \"Saída de kubectl logs dos pods problemáticos, com as últimas linhas antes do erro\"\r\n---\r\n\r\n# Prompt: Triagem de Pods — Sentinel (Aegis)\r\n\r\nVocê é um SRE sênior de plantão na Aegis, responsável por triar pods no namespace `sentinel-prod`. Sua missão é analisar os três blocos de entrada abaixo, identificar pods problemáticos, cruzar evidências de eventos e logs para chegar à causa raiz e recomendar ação concreta para o plantão executar.\r\n\r\n## Blocos de entrada\r\n\r\n1. `NAME                                READY   STATUS    RESTARTS   AGE\nsentinel-worker-7f9bb6f5d9-kq2xr    0/1     Pending   0          12m\nsentinel-api-7d9c8b6f4-2xk9p        1/1     Running   0          6d` — saída do comando `kubectl get pods -n sentinel-prod`.\r\n2. `Name: sentinel-worker-7f9bb6f5d9-kq2xr\nState:          Waiting\n  Reason:       Pending\nEvents:\n  Type     Reason             Age   From               Message\n  ----     ------             ----  ----               -------\n  Warning  FailedScheduling   1m    default-scheduler  0/3 nodes are available: 3 Insufficient cpu.` — saída do comando `kubectl describe pod` para cada pod problemático.\r\n3. `Sem logs disponíveis porque o pod não foi agendado.` — saída do comando `kubectl logs` dos pods problemáticos.\r\n\r\n## Instruções de triagem\r\n\r\n### Passo 1: Identificar pods problemáticos\r\n\r\nAnalise `NAME                                READY   STATUS    RESTARTS   AGE\nsentinel-worker-7f9bb6f5d9-kq2xr    0/1     Pending   0          12m\nsentinel-api-7d9c8b6f4-2xk9p        1/1     Running   0          6d` e marque como problemáticos os pods que atendam a pelo menos um dos critérios:\r\n\r\n- STATUS diferente de `Running`;\r\n- RESTARTS maior que 0 ou crescendo;\r\n- READY inferior ao total esperado (ex.: `0/1` ou `1/2`).\r\n\r\n### Passo 2: Cruzar fontes para chegar à causa raiz\r\n\r\nPara cada pod problemático, examine `Name: sentinel-worker-7f9bb6f5d9-kq2xr\nState:          Waiting\n  Reason:       Pending\nEvents:\n  Type     Reason             Age   From               Message\n  ----     ------             ----  ----               -------\n  Warning  FailedScheduling   1m    default-scheduler  0/3 nodes are available: 3 Insufficient cpu.` e `Sem logs disponíveis porque o pod não foi agendado.`. A causa final não pode ser apenas o STATUS. Você deve cruzar evidências, por exemplo:\r\n\r\n- Evento de `ImagePullBackOff` + log mencionando credencial inválida = falha de autenticação no registry;\r\n- Evento de `CrashLoopBackOff` + log com `OOMKilled` = consumo excessivo de memória;\r\n- Evento de `Pending` + log ausente + evento de scheduling = falta de recurso no node;\r\n- Evento de `Readiness probe failed` + log de aplicação ainda inicializando = falha de health check.\r\n\r\n### Passo 3: Recomendar ação concreta para o plantão\r\n\r\nA ação deve ser imediata e executável pelo plantão, sem exigir análise adicional. Exemplos:\r\n\r\n- Revisar secret `registry-credentials` e forçar recriação do pod;\r\n- Aumentar limite de memória no deployment para 2Gi e reiniciar o rollout;\r\n- Esgotar nós e identificar pod anti-afinidade para liberação de recurso;\r\n- Verificar configuração de readiness probe e ajustar `initialDelaySeconds`.\r\n\r\nSe o incidente exigir escalonamento para um time específico (banco de dados, plataforma, segurança), preencha o campo ESCALAR com `@time`.\r\n\r\n## Formato de saída obrigatório\r\n\r\n## Triagem — 2026-05-13 11:10 UTC\r\n\r\n### Pods problemáticos: [N]\r\n\r\n***\r\n\r\n[POD] nome-do-pod  \r\nSTATUS: <status atual>  \r\nCAUSA: <causa raiz com evidência>  \r\n\r\nEVIDÊNCIA:\r\n- \r\n- \r\nAÇÃO: <próxima ação>  \r\nESCALAR: <@time se aplicável>\r\n\r\n***\r\n\r\nSe nenhum pod problemático for detectado, retorne apenas a linha abaixo, sem cabeçalhos adicionais:\r\n\r\nNenhum pod problemático detectado.",
+          "label": "devops\\triagem-de-pods\\prompt.md: ---\r\nnome: \"Triagem de Pods — Sentinel\"\r\ndescricao...",
+          "config": {
+            "provider": {
+              "temperature": 0
+            }
+          }
+        },
+        "promptId": "31e78de94c7a81fa2dba0e75b20cd52226b63fa146e646c4a505e1b3439c552b",
+        "promptIdx": 0,
+        "provider": {
+          "id": "openai:gpt-4o-mini",
+          "label": ""
+        },
+        "response": {
+          "output": "## Triagem — 2026-05-13 11:10 UTC\r\n\r\n### Pods problemáticos: [1]\r\n\r\n***\r\n\r\n[POD] sentinel-worker-7f9bb6f5d9-kq2xr  \r\nSTATUS: Pending  \r\nCAUSA: Falta de recursos no node, evidenciado pelo evento `FailedScheduling` que indica que 0/3 nodes estão disponíveis devido a `Insufficient cpu`.  \r\n\r\nEVIDÊNCIA:\r\n- Evento de `FailedScheduling` indicando que não há nós disponíveis.\r\n- Sem logs disponíveis porque o pod não foi agendado.\r\n\r\nAÇÃO: Esgotar nós e identificar pod anti-afinidade para liberação de recurso.  \r\nESCALAR: <@time se aplicável>\r\n\r\n***",
+          "tokenUsage": {
+            "total": 1294,
+            "prompt": 1145,
+            "completion": 149,
+            "numRequests": 1,
+            "completionDetails": {
+              "reasoning": 0,
+              "acceptedPrediction": 0,
+              "rejectedPrediction": 0
+            }
+          },
+          "cached": false,
+          "latencyMs": 2740,
+          "finishReason": "stop",
+          "cost": 0.00026115,
+          "guardrails": {
+            "flagged": false
+          },
+          "metadata": {
+            "http": {
+              "status": 200,
+              "statusText": "OK",
+              "headers": {
+                "access-control-expose-headers": "X-Request-ID,CF-Ray,CF-Ray",
+                "alt-svc": "h3=\":443\"; ma=86400",
+                "cf-cache-status": "[REDACTED]",
+                "cf-ray": "[REDACTED]",
+                "connection": "keep-alive",
+                "content-type": "application/json",
+                "date": "Thu, 25 Jun 2026 22:03:53 GMT",
+                "openai-organization": "[REDACTED]",
+                "openai-processing-ms": "2516",
+                "openai-project": "[REDACTED]",
+                "openai-version": "[REDACTED]",
+                "server": "cloudflare",
+                "set-cookie": "[REDACTED]",
+                "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+                "transfer-encoding": "chunked",
+                "x-content-type-options": "nosniff",
+                "x-openai-proxy-wasm": "[REDACTED]",
+                "x-ratelimit-limit-requests": "[REDACTED]",
+                "x-ratelimit-limit-tokens": "[REDACTED]",
+                "x-ratelimit-remaining-requests": "[REDACTED]",
+                "x-ratelimit-remaining-tokens": "[REDACTED]",
+                "x-ratelimit-reset-requests": "[REDACTED]",
+                "x-ratelimit-reset-tokens": "[REDACTED]",
+                "x-request-id": "[REDACTED]"
+              }
+            }
+          }
+        },
+        "score": 1,
+        "success": true,
+        "testCase": {
+          "description": "Detecta Pending por falta de CPU no cluster",
+          "vars": {
+            "timestamp": "2026-05-13 11:10 UTC",
+            "snapshot_pods": "NAME                                READY   STATUS    RESTARTS   AGE\nsentinel-worker-7f9bb6f5d9-kq2xr    0/1     Pending   0          12m\nsentinel-api-7d9c8b6f4-2xk9p        1/1     Running   0          6d\n",
+            "snapshot_events": "Name: sentinel-worker-7f9bb6f5d9-kq2xr\nState:          Waiting\n  Reason:       Pending\nEvents:\n  Type     Reason             Age   From               Message\n  ----     ------             ----  ----               -------\n  Warning  FailedScheduling   1m    default-scheduler  0/3 nodes are available: 3 Insufficient cpu.\n",
+            "snapshot_logs": "Sem logs disponíveis porque o pod não foi agendado.\n"
+          },
+          "assert": [
+            {
+              "type": "contains",
+              "value": "[POD] sentinel-worker-7f9bb6f5d9-kq2xr"
+            },
+            {
+              "type": "contains",
+              "value": "Pending"
+            },
+            {
+              "type": "icontains",
+              "value": "Insufficient cpu"
+            },
+            {
+              "type": "icontains",
+              "value": "falta de recurso"
+            },
+            {
+              "type": "icontains",
+              "value": "node"
+            }
+          ],
+          "options": {
+            "provider": {
+              "temperature": 0
+            }
+          },
+          "metadata": {}
+        },
+        "testIdx": 2,
+        "tokenUsage": {
+          "prompt": 1145,
+          "completion": 149,
+          "cached": 0,
+          "total": 1294,
+          "numRequests": 1,
+          "completionDetails": {
+            "reasoning": 0,
+            "acceptedPrediction": 0,
+            "rejectedPrediction": 0,
+            "cacheReadInputTokens": 0,
+            "cacheCreationInputTokens": 0
+          },
+          "assertions": {
+            "total": 0,
+            "prompt": 0,
+            "completion": 0,
+            "cached": 0,
+            "numRequests": 1,
+            "completionDetails": {
+              "reasoning": 0,
+              "acceptedPrediction": 0,
+              "rejectedPrediction": 0,
+              "cacheReadInputTokens": 0,
+              "cacheCreationInputTokens": 0
+            }
+          }
+        },
+        "vars": {
+          "timestamp": "2026-05-13 11:10 UTC",
+          "snapshot_pods": "NAME                                READY   STATUS    RESTARTS   AGE\nsentinel-worker-7f9bb6f5d9-kq2xr    0/1     Pending   0          12m\nsentinel-api-7d9c8b6f4-2xk9p        1/1     Running   0          6d\n",
+          "snapshot_events": "Name: sentinel-worker-7f9bb6f5d9-kq2xr\nState:          Waiting\n  Reason:       Pending\nEvents:\n  Type     Reason             Age   From               Message\n  ----     ------             ----  ----               -------\n  Warning  FailedScheduling   1m    default-scheduler  0/3 nodes are available: 3 Insufficient cpu.\n",
+          "snapshot_logs": "Sem logs disponíveis porque o pod não foi agendado.\n"
+        },
+        "metadata": {
+          "http": {
+            "status": 200,
+            "statusText": "OK",
+            "headers": {
+              "access-control-expose-headers": "X-Request-ID,CF-Ray,CF-Ray",
+              "alt-svc": "h3=\":443\"; ma=86400",
+              "cf-cache-status": "[REDACTED]",
+              "cf-ray": "[REDACTED]",
+              "connection": "keep-alive",
+              "content-type": "application/json",
+              "date": "Thu, 25 Jun 2026 22:03:53 GMT",
+              "openai-organization": "[REDACTED]",
+              "openai-processing-ms": "2516",
+              "openai-project": "[REDACTED]",
+              "openai-version": "[REDACTED]",
+              "server": "cloudflare",
+              "set-cookie": "[REDACTED]",
+              "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+              "transfer-encoding": "chunked",
+              "x-content-type-options": "nosniff",
+              "x-openai-proxy-wasm": "[REDACTED]",
+              "x-ratelimit-limit-requests": "[REDACTED]",
+              "x-ratelimit-limit-tokens": "[REDACTED]",
+              "x-ratelimit-remaining-requests": "[REDACTED]",
+              "x-ratelimit-remaining-tokens": "[REDACTED]",
+              "x-ratelimit-reset-requests": "[REDACTED]",
+              "x-ratelimit-reset-tokens": "[REDACTED]",
+              "x-request-id": "[REDACTED]"
+            }
+          },
+          "_promptfooFileMetadata": {}
+        },
+        "failureReason": 0
+      },
+      {
+        "cost": 0.00017144999999999997,
+        "gradingResult": {
+          "pass": true,
+          "score": 1,
+          "reason": "All assertions passed",
+          "namedScores": {},
+          "tokensUsed": {
+            "total": 0,
+            "prompt": 0,
+            "completion": 0,
+            "cached": 0,
+            "numRequests": 0
+          },
+          "componentResults": [
+            {
+              "pass": true,
+              "score": 1,
+              "reason": "Assertion passed",
+              "assertion": {
+                "type": "icontains",
+                "value": "Nenhum pod problemático detectado."
+              }
+            }
+          ]
+        },
+        "id": "d6db7df8-0e3c-47ab-b490-046d52b3c8e8",
+        "latencyMs": 1416,
+        "namedScores": {},
+        "prompt": {
+          "raw": "---\r\nnome: \"Triagem de Pods — Sentinel\"\r\ndescricao: \"A partir de um snapshot do cluster Kubernetes, tria pods problemáticos identificando causa provável via cross-referência de status, eventos e logs.\"\r\nversao: \"1.0.0\"\r\ntags:\r\n  - kubernetes\r\n  - sre\r\n  - observabilidade\r\n  - sentinel\r\n  - aegis\r\ninputs:\r\n  - nome: snapshot_pods\r\n    descricao: \"Saída de kubectl get pods -n sentinel-prod com status, restart count e idade dos pods\"\r\n  - nome: snapshot_events\r\n    descricao: \"Saída de kubectl describe pod para cada pod problemático, com eventos e razões\"\r\n  - nome: snapshot_logs\r\n    descricao: \"Saída de kubectl logs dos pods problemáticos, com as últimas linhas antes do erro\"\r\n---\r\n\r\n# Prompt: Triagem de Pods — Sentinel (Aegis)\r\n\r\nVocê é um SRE sênior de plantão na Aegis, responsável por triar pods no namespace `sentinel-prod`. Sua missão é analisar os três blocos de entrada abaixo, identificar pods problemáticos, cruzar evidências de eventos e logs para chegar à causa raiz e recomendar ação concreta para o plantão executar.\r\n\r\n## Blocos de entrada\r\n\r\n1. `NAME                                READY   STATUS    RESTARTS   AGE\nsentinel-api-7d9c8b6f4-2xk9p        1/1     Running   0          6d\nsentinel-api-7d9c8b6f4-z9m1a        1/1     Running   0          6d\nsentinel-worker-5b8f9c8d-jq7rs      1/1     Running   0          6d` — saída do comando `kubectl get pods -n sentinel-prod`.\r\n2. `Nenhum evento relevante.` — saída do comando `kubectl describe pod` para cada pod problemático.\r\n3. `Nenhum log relevante.` — saída do comando `kubectl logs` dos pods problemáticos.\r\n\r\n## Instruções de triagem\r\n\r\n### Passo 1: Identificar pods problemáticos\r\n\r\nAnalise `NAME                                READY   STATUS    RESTARTS   AGE\nsentinel-api-7d9c8b6f4-2xk9p        1/1     Running   0          6d\nsentinel-api-7d9c8b6f4-z9m1a        1/1     Running   0          6d\nsentinel-worker-5b8f9c8d-jq7rs      1/1     Running   0          6d` e marque como problemáticos os pods que atendam a pelo menos um dos critérios:\r\n\r\n- STATUS diferente de `Running`;\r\n- RESTARTS maior que 0 ou crescendo;\r\n- READY inferior ao total esperado (ex.: `0/1` ou `1/2`).\r\n\r\n### Passo 2: Cruzar fontes para chegar à causa raiz\r\n\r\nPara cada pod problemático, examine `Nenhum evento relevante.` e `Nenhum log relevante.`. A causa final não pode ser apenas o STATUS. Você deve cruzar evidências, por exemplo:\r\n\r\n- Evento de `ImagePullBackOff` + log mencionando credencial inválida = falha de autenticação no registry;\r\n- Evento de `CrashLoopBackOff` + log com `OOMKilled` = consumo excessivo de memória;\r\n- Evento de `Pending` + log ausente + evento de scheduling = falta de recurso no node;\r\n- Evento de `Readiness probe failed` + log de aplicação ainda inicializando = falha de health check.\r\n\r\n### Passo 3: Recomendar ação concreta para o plantão\r\n\r\nA ação deve ser imediata e executável pelo plantão, sem exigir análise adicional. Exemplos:\r\n\r\n- Revisar secret `registry-credentials` e forçar recriação do pod;\r\n- Aumentar limite de memória no deployment para 2Gi e reiniciar o rollout;\r\n- Esgotar nós e identificar pod anti-afinidade para liberação de recurso;\r\n- Verificar configuração de readiness probe e ajustar `initialDelaySeconds`.\r\n\r\nSe o incidente exigir escalonamento para um time específico (banco de dados, plataforma, segurança), preencha o campo ESCALAR com `@time`.\r\n\r\n## Formato de saída obrigatório\r\n\r\n## Triagem — 2026-05-13 11:20 UTC\r\n\r\n### Pods problemáticos: [N]\r\n\r\n***\r\n\r\n[POD] nome-do-pod  \r\nSTATUS: <status atual>  \r\nCAUSA: <causa raiz com evidência>  \r\n\r\nEVIDÊNCIA:\r\n- \r\n- \r\nAÇÃO: <próxima ação>  \r\nESCALAR: <@time se aplicável>\r\n\r\n***\r\n\r\nSe nenhum pod problemático for detectado, retorne apenas a linha abaixo, sem cabeçalhos adicionais:\r\n\r\nNenhum pod problemático detectado.",
+          "label": "devops\\triagem-de-pods\\prompt.md: ---\r\nnome: \"Triagem de Pods — Sentinel\"\r\ndescricao...",
+          "config": {
+            "provider": {
+              "temperature": 0
+            }
+          }
+        },
+        "promptId": "31e78de94c7a81fa2dba0e75b20cd52226b63fa146e646c4a505e1b3439c552b",
+        "promptIdx": 0,
+        "provider": {
+          "id": "openai:gpt-4o-mini",
+          "label": ""
+        },
+        "response": {
+          "output": "## Triagem — 2026-05-13 11:20 UTC\n\nNenhum pod problemático detectado.",
+          "tokenUsage": {
+            "total": 1068,
+            "prompt": 1043,
+            "completion": 25,
+            "numRequests": 1,
+            "completionDetails": {
+              "reasoning": 0,
+              "acceptedPrediction": 0,
+              "rejectedPrediction": 0
+            }
+          },
+          "cached": false,
+          "latencyMs": 1416,
+          "finishReason": "stop",
+          "cost": 0.00017144999999999997,
+          "guardrails": {
+            "flagged": false
+          },
+          "metadata": {
+            "http": {
+              "status": 200,
+              "statusText": "OK",
+              "headers": {
+                "access-control-expose-headers": "X-Request-ID,CF-Ray,CF-Ray",
+                "alt-svc": "h3=\":443\"; ma=86400",
+                "cf-cache-status": "[REDACTED]",
+                "cf-ray": "[REDACTED]",
+                "connection": "keep-alive",
+                "content-type": "application/json",
+                "date": "Thu, 25 Jun 2026 22:03:52 GMT",
+                "openai-organization": "[REDACTED]",
+                "openai-processing-ms": "807",
+                "openai-project": "[REDACTED]",
+                "openai-version": "[REDACTED]",
+                "server": "cloudflare",
+                "set-cookie": "[REDACTED]",
+                "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+                "transfer-encoding": "chunked",
+                "x-content-type-options": "nosniff",
+                "x-openai-proxy-wasm": "[REDACTED]",
+                "x-ratelimit-limit-requests": "[REDACTED]",
+                "x-ratelimit-limit-tokens": "[REDACTED]",
+                "x-ratelimit-remaining-requests": "[REDACTED]",
+                "x-ratelimit-remaining-tokens": "[REDACTED]",
+                "x-ratelimit-reset-requests": "[REDACTED]",
+                "x-ratelimit-reset-tokens": "[REDACTED]",
+                "x-request-id": "[REDACTED]"
+              }
+            }
+          }
+        },
+        "score": 1,
+        "success": true,
+        "testCase": {
+          "description": "Retorna cenário saudável quando não há pods problemáticos",
+          "vars": {
+            "timestamp": "2026-05-13 11:20 UTC",
+            "snapshot_pods": "NAME                                READY   STATUS    RESTARTS   AGE\nsentinel-api-7d9c8b6f4-2xk9p        1/1     Running   0          6d\nsentinel-api-7d9c8b6f4-z9m1a        1/1     Running   0          6d\nsentinel-worker-5b8f9c8d-jq7rs      1/1     Running   0          6d\n",
+            "snapshot_events": "Nenhum evento relevante.\n",
+            "snapshot_logs": "Nenhum log relevante.\n"
+          },
+          "assert": [
+            {
+              "type": "icontains",
+              "value": "Nenhum pod problemático detectado."
+            }
+          ],
+          "options": {
+            "provider": {
+              "temperature": 0
+            }
+          },
+          "metadata": {}
+        },
+        "testIdx": 3,
+        "tokenUsage": {
+          "prompt": 1043,
+          "completion": 25,
+          "cached": 0,
+          "total": 1068,
+          "numRequests": 1,
+          "completionDetails": {
+            "reasoning": 0,
+            "acceptedPrediction": 0,
+            "rejectedPrediction": 0,
+            "cacheReadInputTokens": 0,
+            "cacheCreationInputTokens": 0
+          },
+          "assertions": {
+            "total": 0,
+            "prompt": 0,
+            "completion": 0,
+            "cached": 0,
+            "numRequests": 1,
+            "completionDetails": {
+              "reasoning": 0,
+              "acceptedPrediction": 0,
+              "rejectedPrediction": 0,
+              "cacheReadInputTokens": 0,
+              "cacheCreationInputTokens": 0
+            }
+          }
+        },
+        "vars": {
+          "timestamp": "2026-05-13 11:20 UTC",
+          "snapshot_pods": "NAME                                READY   STATUS    RESTARTS   AGE\nsentinel-api-7d9c8b6f4-2xk9p        1/1     Running   0          6d\nsentinel-api-7d9c8b6f4-z9m1a        1/1     Running   0          6d\nsentinel-worker-5b8f9c8d-jq7rs      1/1     Running   0          6d\n",
+          "snapshot_events": "Nenhum evento relevante.\n",
+          "snapshot_logs": "Nenhum log relevante.\n"
+        },
+        "metadata": {
+          "http": {
+            "status": 200,
+            "statusText": "OK",
+            "headers": {
+              "access-control-expose-headers": "X-Request-ID,CF-Ray,CF-Ray",
+              "alt-svc": "h3=\":443\"; ma=86400",
+              "cf-cache-status": "[REDACTED]",
+              "cf-ray": "[REDACTED]",
+              "connection": "keep-alive",
+              "content-type": "application/json",
+              "date": "Thu, 25 Jun 2026 22:03:52 GMT",
+              "openai-organization": "[REDACTED]",
+              "openai-processing-ms": "807",
+              "openai-project": "[REDACTED]",
+              "openai-version": "[REDACTED]",
+              "server": "cloudflare",
+              "set-cookie": "[REDACTED]",
+              "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+              "transfer-encoding": "chunked",
+              "x-content-type-options": "nosniff",
+              "x-openai-proxy-wasm": "[REDACTED]",
+              "x-ratelimit-limit-requests": "[REDACTED]",
+              "x-ratelimit-limit-tokens": "[REDACTED]",
+              "x-ratelimit-remaining-requests": "[REDACTED]",
+              "x-ratelimit-remaining-tokens": "[REDACTED]",
+              "x-ratelimit-reset-requests": "[REDACTED]",
+              "x-ratelimit-reset-tokens": "[REDACTED]",
+              "x-request-id": "[REDACTED]"
+            }
+          },
+          "_promptfooFileMetadata": {}
+        },
+        "failureReason": 0
+      }
+    ],
+    "stats": {
+      "successes": 4,
+      "failures": 0,
+      "errors": 0,
+      "tokenUsage": {
+        "prompt": 5011,
+        "completion": 561,
+        "cached": 0,
+        "total": 5572,
+        "numRequests": 4,
+        "completionDetails": {
+          "reasoning": 0,
+          "acceptedPrediction": 0,
+          "rejectedPrediction": 0,
+          "cacheReadInputTokens": 0,
+          "cacheCreationInputTokens": 0
+        },
+        "assertions": {
+          "total": 0,
+          "prompt": 0,
+          "completion": 0,
+          "cached": 0,
+          "numRequests": 0,
+          "completionDetails": {
+            "reasoning": 0,
+            "acceptedPrediction": 0,
+            "rejectedPrediction": 0,
+            "cacheReadInputTokens": 0,
+            "cacheCreationInputTokens": 0
+          }
+        }
+      },
+      "durationMs": 4304,
+      "evaluationDurationMs": 4304
+    }
+  },
+  "config": {
+    "tags": {},
+    "description": "Testes do prompt Triagem de Pods do Sentinel",
+    "prompts": [
+      "file://C:\\Users\\Juarez\\Documents\\00 Pos Graduação AIOPS\\02 - Engenharia de Prompt e contexto\\DESAFIOS\\Playbook-IA\\aegis-operational_prompt_library\\devops\\triagem-de-pods\\prompt.md"
+    ],
+    "providers": [
+      {
+        "id": "openai:gpt-4o-mini"
+      }
+    ],
+    "tests": [
+      {
+        "description": "Detecta CrashLoopBackOff por OOMKilled e recomenda ação concreta",
+        "vars": {
+          "timestamp": "2026-05-13 10:20 UTC",
+          "snapshot_pods": "NAME                             READY   STATUS             RESTARTS       AGE\nsentinel-api-7d9c8b6f4-2xk9p     1/1     Running            0              6d\nsentinel-api-7d9c8b6f4-h4m2t     0/1     CrashLoopBackOff   14 (90s ago)   42m\nsentinel-worker-5b8f9c8d-jq7rs   1/1     Running            0              6d\nsentinel-scheduler-6c4d7f-nn8vx  1/1     Running            0              6d\n",
+          "snapshot_events": "Name: sentinel-api-7d9c8b6f4-h4m2t\nState:          Waiting\n  Reason:       CrashLoopBackOff\nLast State:     Terminated\n  Reason:       OOMKilled\n  Exit Code:    137\nLimits:\n  memory: 512Mi\nRequests:\n  memory: 256Mi\nEvents:\n  Type     Reason   Age                From     Message\n  ----     ------   ----               ----     -------\n  Warning  BackOff  2m (x18 over 40m)  kubelet  Back-off restarting failed container api\n",
+          "snapshot_logs": "2026-05-13 10:14:02 [INFO]  [api] startup complete, version 2.9.1\n2026-05-13 10:14:48 [INFO]  [cache] loading 6h alert cache (heap 410Mi/512Mi)\n2026-05-13 10:15:10 [WARN]  [runtime] high GC pressure, heap 498Mi/512Mi\n2026-05-13 10:15:12 [FATAL] [runtime] out of memory, shutting down process\n"
+        },
+        "assert": [
+          {
+            "type": "icontains",
+            "value": "triagem"
+          },
+          {
+            "type": "icontains",
+            "value": "pods problemáticos"
+          },
+          {
+            "type": "icontains",
+            "value": "sentinel-api-7d9c8b6f4-h4m2t"
+          },
+          {
+            "type": "icontains",
+            "value": "crashloopbackoff"
+          },
+          {
+            "type": "regex",
+            "value": "(OOMKilled|OOM|[Oo]ut\\s*of|mem.ria|Exit Code:?\\s*137|exit.code.137)"
+          }
+        ]
+      },
+      {
+        "description": "Detecta ImagePullBackOff e aponta falha de autenticação no registry",
+        "vars": {
+          "timestamp": "2026-05-13 11:00 UTC",
+          "snapshot_pods": "NAME                               READY   STATUS             RESTARTS   AGE\nsentinel-api-77f4d8d67c-mv2k9      0/1     ImagePullBackOff   0          9m\nsentinel-worker-5b8f9c8d-jq7rs     1/1     Running            0          6d\n",
+          "snapshot_events": "Name: sentinel-api-77f4d8d67c-mv2k9\nState:          Waiting\n  Reason:       ImagePullBackOff\nEvents:\n  Type     Reason      Age   From     Message\n  ----     ------      ----  ----     -------\n  Warning  Failed      3m    kubelet  Failed to pull image \"registry.aegis.local/sentinel/api:2.9.2\": unauthorized: authentication required\n  Warning  BackOff     2m    kubelet  Back-off pulling image \"registry.aegis.local/sentinel/api:2.9.2\"\n",
+          "snapshot_logs": "Sem logs disponíveis porque o container não iniciou.\n"
+        },
+        "assert": [
+          {
+            "type": "contains",
+            "value": "[POD] sentinel-api-77f4d8d67c-mv2k9"
+          },
+          {
+            "type": "contains",
+            "value": "ImagePullBackOff"
+          },
+          {
+            "type": "icontains",
+            "value": "autenticação"
+          },
+          {
+            "type": "icontains",
+            "value": "registry"
+          },
+          {
+            "type": "icontains",
+            "value": "secret"
+          }
+        ]
+      },
+      {
+        "description": "Detecta Pending por falta de CPU no cluster",
+        "vars": {
+          "timestamp": "2026-05-13 11:10 UTC",
+          "snapshot_pods": "NAME                                READY   STATUS    RESTARTS   AGE\nsentinel-worker-7f9bb6f5d9-kq2xr    0/1     Pending   0          12m\nsentinel-api-7d9c8b6f4-2xk9p        1/1     Running   0          6d\n",
+          "snapshot_events": "Name: sentinel-worker-7f9bb6f5d9-kq2xr\nState:          Waiting\n  Reason:       Pending\nEvents:\n  Type     Reason             Age   From               Message\n  ----     ------             ----  ----               -------\n  Warning  FailedScheduling   1m    default-scheduler  0/3 nodes are available: 3 Insufficient cpu.\n",
+          "snapshot_logs": "Sem logs disponíveis porque o pod não foi agendado.\n"
+        },
+        "assert": [
+          {
+            "type": "contains",
+            "value": "[POD] sentinel-worker-7f9bb6f5d9-kq2xr"
+          },
+          {
+            "type": "contains",
+            "value": "Pending"
+          },
+          {
+            "type": "icontains",
+            "value": "Insufficient cpu"
+          },
+          {
+            "type": "icontains",
+            "value": "falta de recurso"
+          },
+          {
+            "type": "icontains",
+            "value": "node"
+          }
+        ]
+      },
+      {
+        "description": "Retorna cenário saudável quando não há pods problemáticos",
+        "vars": {
+          "timestamp": "2026-05-13 11:20 UTC",
+          "snapshot_pods": "NAME                                READY   STATUS    RESTARTS   AGE\nsentinel-api-7d9c8b6f4-2xk9p        1/1     Running   0          6d\nsentinel-api-7d9c8b6f4-z9m1a        1/1     Running   0          6d\nsentinel-worker-5b8f9c8d-jq7rs      1/1     Running   0          6d\n",
+          "snapshot_events": "Nenhum evento relevante.\n",
+          "snapshot_logs": "Nenhum log relevante.\n"
+        },
+        "assert": [
+          {
+            "type": "icontains",
+            "value": "Nenhum pod problemático detectado."
+          }
+        ]
+      }
+    ],
+    "env": {},
+    "defaultTest": {
+      "options": {
+        "provider": {
+          "temperature": 0
+        }
+      },
+      "vars": {},
+      "assert": [],
+      "metadata": {}
+    },
+    "outputPath": [
+      "resultados/triagem-de-pods.json"
+    ],
+    "extensions": [],
+    "metadata": {},
+    "evaluateOptions": {}
+  },
+  "shareableUrl": null,
+  "metadata": {
+    "promptfooVersion": "0.121.17",
+    "nodeVersion": "v24.11.1",
+    "platform": "win32",
+    "arch": "x64",
+    "exportedAt": "2026-06-25T22:03:55.419Z",
+    "evaluationCreatedAt": "2026-06-25T22:03:50.689Z",
+    "author": "profjuarez2022@gmail.com"
+  },
+  "vars": [
+    "timestamp",
+    "snapshot_pods",
+    "snapshot_events",
+    "snapshot_logs"
+  ],
+  "runtimeOptions": {
+    "eventSource": "cli",
+    "showProgressBar": true,
+    "repeat": 1,
+    "maxConcurrency": 4,
+    "cache": false
+  }
+}

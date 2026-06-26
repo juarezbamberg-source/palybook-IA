@@ -1,0 +1,462 @@
+{
+  "evalId": "eval-PVQ-2026-06-25T22:03:59",
+  "results": {
+    "version": 3,
+    "timestamp": "2026-06-25T22:03:59.427Z",
+    "prompts": [
+      {
+        "raw": "---\r\nnome: \"Revisão e Correção de NetworkPolicy — Sentinel\"\r\ndescricao: \"A partir de um manifesto permissivo de NetworkPolicy, corrige seguindo o padrão de segurança da Aegis, com auto-revisão e refino iterativo.\"\r\nversao: \"1.0.0\"\r\ntags:\r\n  - kubernetes\r\n  - network-policy\r\n  - seguranca\r\n  - sre\r\n  - aegis\r\n  - sentinel\r\ninputs:\r\n  - nome: manifesto_permissivo\r\n    descricao: \"Manifesto YAML de NetworkPolicy barrado pela revisão de segurança por ser permissivo demais\"\r\n---\r\n\r\n# Prompt: Revisão e Correção de NetworkPolicy — Sentinel (Aegis)\r\n\r\nVocê é um SRE sênior da Aegis especializado em segurança de rede Kubernetes. Recebeu um manifesto de NetworkPolicy que a equipe de segurança barrou por ser permissivo demais. Sua tarefa é corrigi-lo seguindo o padrão da Aegis.\r\n\r\n## Manifesto a ser corrigido\r\n\r\nO manifesto abaixo foi barrado pela revisão de segurança. Analise-o e produza a versão corrigida.\r\n\r\n```\r\n{{manifesto_permissivo}}\r\n```\r\n\r\n## Padrão de segurança da Aegis para o namespace sentinel-prod\r\n\r\nAs regras abaixo definem o padrão que a NetworkPolicy corrigida deve seguir:\r\n\r\n- Pods do Sentinel só aceitam tráfego de **entrada** do Relay (consumo de eventos) e do gateway de API da plataforma\r\n- Pods do Sentinel só fazem **saída** para: Forge (warehouse, porta 5432), Cerebro (busca, porta 9200) e DNS interno\r\n- **Nada de \"allow all\"** em ingress ou egress\r\n- Política **default-deny explícita** no namespace\r\n- Toda regra precisa de **comentário** dizendo qual fluxo legítimo ela libera\r\n\r\n## Mapa de serviços do cluster\r\n\r\nConsulte este mapa para escrever os seletores corretos:\r\n\r\n| Serviço | Namespace | Label | Porta |\r\n|---------|-----------|-------|-------|\r\n| Sentinel | sentinel-prod | app=sentinel | - |\r\n| Relay | relay-prod | app=relay | - |\r\n| API Gateway | edge | app=api-gateway | - |\r\n| Forge | forge-prod | app=forge | 5432 |\r\n| Cerebro | cerebro-prod | app=cerebro | 9200 |\r\n| DNS interno | kube-system | k8s-app=kube-dns | 53 |\r\n\r\n## Formato de saída\r\n\r\nProduza a NetworkPolicy corrigida em YAML, com:\r\n1. **Default-deny** para ingress e egress\r\n2. Regras específicas de **ingress** liberando apenas Relay e API Gateway\r\n3. Regras específicas de **egress** liberando apenas Forge (5432), Cerebro (9200) e DNS interno (53)\r\n4. **Comentários** em cada regra explicando o fluxo legítimo\r\n5. Sem `- {}` ou `podSelector: {}` genérico\r\n\r\n## Instruções de auto-revisão\r\n\r\nApós gerar a primeira versão (v1), você deve:\r\n\r\n1. **Auto-revisão:** analise criticamente a NetworkPolicy que você acabou de gerar como se fosse a Natasha Romanoff. Levante tudo que pode estar errado, permissivo demais, ou faltando.\r\n2. **Perguntas de verificação:** liste pelo menos 3 perguntas que um revisor de segurança faria sobre a política.\r\n3. **Refino:** com base na sua própria crítica, produza uma v2 corrigida.\r\n4. **Repita** o processo de crítica e refino até que você considere a política pronta para aprovação.\r\n\r\nRegistre cada iteração claramente.\r\n```\r\n",
+        "label": "devops\\networkpolicy-sentinel\\prompt.md: ---\r\nnome: \"Revisão e Correção de NetworkPolicy — ...",
+        "id": "cc3fced1556c9a4ce02812fb33c402091da93c92633b946c93a1ed798d83cfff",
+        "provider": "openai:gpt-4o-mini",
+        "metrics": {
+          "score": 0.8888888888888888,
+          "testPassCount": 0,
+          "testFailCount": 1,
+          "testErrorCount": 0,
+          "assertPassCount": 8,
+          "assertFailCount": 1,
+          "totalLatencyMs": 39668,
+          "tokenUsage": {
+            "prompt": 831,
+            "completion": 1024,
+            "cached": 0,
+            "total": 1855,
+            "numRequests": 1,
+            "completionDetails": {
+              "reasoning": 0,
+              "acceptedPrediction": 0,
+              "rejectedPrediction": 0,
+              "cacheReadInputTokens": 0,
+              "cacheCreationInputTokens": 0
+            },
+            "assertions": {
+              "total": 0,
+              "prompt": 0,
+              "completion": 0,
+              "cached": 0,
+              "numRequests": 0,
+              "completionDetails": {
+                "reasoning": 0,
+                "acceptedPrediction": 0,
+                "rejectedPrediction": 0,
+                "cacheReadInputTokens": 0,
+                "cacheCreationInputTokens": 0
+              }
+            }
+          },
+          "namedScores": {},
+          "namedScoresCount": {},
+          "namedScoreWeights": {},
+          "cost": 0.00073905
+        }
+      }
+    ],
+    "results": [
+      {
+        "cost": 0.00073905,
+        "error": "Latency 39668ms is greater than threshold 30000ms",
+        "gradingResult": {
+          "pass": false,
+          "score": 0.8888888888888888,
+          "reason": "Latency 39668ms is greater than threshold 30000ms",
+          "namedScores": {},
+          "tokensUsed": {
+            "total": 0,
+            "prompt": 0,
+            "completion": 0,
+            "cached": 0,
+            "numRequests": 0
+          },
+          "componentResults": [
+            {
+              "pass": true,
+              "score": 1,
+              "reason": "Assertion passed",
+              "assertion": {
+                "type": "contains",
+                "value": "kind: NetworkPolicy"
+              }
+            },
+            {
+              "pass": true,
+              "score": 1,
+              "reason": "Assertion passed",
+              "assertion": {
+                "type": "contains",
+                "value": "Ingress"
+              }
+            },
+            {
+              "pass": true,
+              "score": 1,
+              "reason": "Assertion passed",
+              "assertion": {
+                "type": "contains",
+                "value": "Egress"
+              }
+            },
+            {
+              "pass": true,
+              "score": 1,
+              "reason": "Assertion passed",
+              "assertion": {
+                "type": "javascript",
+                "value": "!output.includes('- {}') && !output.includes('ingress: - {}') && !output.includes('egress: - {}')"
+              }
+            },
+            {
+              "pass": true,
+              "score": 1,
+              "reason": "Assertion passed",
+              "assertion": {
+                "type": "contains",
+                "value": "5432"
+              }
+            },
+            {
+              "pass": true,
+              "score": 1,
+              "reason": "Assertion passed",
+              "assertion": {
+                "type": "contains",
+                "value": "9200"
+              }
+            },
+            {
+              "pass": true,
+              "score": 1,
+              "reason": "Assertion passed",
+              "assertion": {
+                "type": "contains",
+                "value": "app: relay"
+              }
+            },
+            {
+              "pass": true,
+              "score": 1,
+              "reason": "Assertion passed",
+              "assertion": {
+                "type": "regex",
+                "value": "#.*"
+              }
+            },
+            {
+              "pass": false,
+              "score": 0,
+              "reason": "Latency 39668ms is greater than threshold 30000ms",
+              "assertion": {
+                "type": "latency",
+                "threshold": 30000
+              }
+            }
+          ]
+        },
+        "id": "630ee904-93ec-486d-9745-1573c171bc43",
+        "latencyMs": 39668,
+        "namedScores": {},
+        "prompt": {
+          "raw": "---\r\nnome: \"Revisão e Correção de NetworkPolicy — Sentinel\"\r\ndescricao: \"A partir de um manifesto permissivo de NetworkPolicy, corrige seguindo o padrão de segurança da Aegis, com auto-revisão e refino iterativo.\"\r\nversao: \"1.0.0\"\r\ntags:\r\n  - kubernetes\r\n  - network-policy\r\n  - seguranca\r\n  - sre\r\n  - aegis\r\n  - sentinel\r\ninputs:\r\n  - nome: manifesto_permissivo\r\n    descricao: \"Manifesto YAML de NetworkPolicy barrado pela revisão de segurança por ser permissivo demais\"\r\n---\r\n\r\n# Prompt: Revisão e Correção de NetworkPolicy — Sentinel (Aegis)\r\n\r\nVocê é um SRE sênior da Aegis especializado em segurança de rede Kubernetes. Recebeu um manifesto de NetworkPolicy que a equipe de segurança barrou por ser permissivo demais. Sua tarefa é corrigi-lo seguindo o padrão da Aegis.\r\n\r\n## Manifesto a ser corrigido\r\n\r\nO manifesto abaixo foi barrado pela revisão de segurança. Analise-o e produza a versão corrigida.\r\n\r\n```\r\napiVersion: networking.k8s.io/v1 kind: NetworkPolicy metadata:\n  name: sentinel-allow\n  namespace: sentinel-prod\nspec:\n  podSelector: {}\n  policyTypes:\n    - Ingress\n    - Egress\n  ingress:\n    - {}\n  egress:\n    - {}\r\n```\r\n\r\n## Padrão de segurança da Aegis para o namespace sentinel-prod\r\n\r\nAs regras abaixo definem o padrão que a NetworkPolicy corrigida deve seguir:\r\n\r\n- Pods do Sentinel só aceitam tráfego de **entrada** do Relay (consumo de eventos) e do gateway de API da plataforma\r\n- Pods do Sentinel só fazem **saída** para: Forge (warehouse, porta 5432), Cerebro (busca, porta 9200) e DNS interno\r\n- **Nada de \"allow all\"** em ingress ou egress\r\n- Política **default-deny explícita** no namespace\r\n- Toda regra precisa de **comentário** dizendo qual fluxo legítimo ela libera\r\n\r\n## Mapa de serviços do cluster\r\n\r\nConsulte este mapa para escrever os seletores corretos:\r\n\r\n| Serviço | Namespace | Label | Porta |\r\n|---------|-----------|-------|-------|\r\n| Sentinel | sentinel-prod | app=sentinel | - |\r\n| Relay | relay-prod | app=relay | - |\r\n| API Gateway | edge | app=api-gateway | - |\r\n| Forge | forge-prod | app=forge | 5432 |\r\n| Cerebro | cerebro-prod | app=cerebro | 9200 |\r\n| DNS interno | kube-system | k8s-app=kube-dns | 53 |\r\n\r\n## Formato de saída\r\n\r\nProduza a NetworkPolicy corrigida em YAML, com:\r\n1. **Default-deny** para ingress e egress\r\n2. Regras específicas de **ingress** liberando apenas Relay e API Gateway\r\n3. Regras específicas de **egress** liberando apenas Forge (5432), Cerebro (9200) e DNS interno (53)\r\n4. **Comentários** em cada regra explicando o fluxo legítimo\r\n5. Sem `- {}` ou `podSelector: {}` genérico\r\n\r\n## Instruções de auto-revisão\r\n\r\nApós gerar a primeira versão (v1), você deve:\r\n\r\n1. **Auto-revisão:** analise criticamente a NetworkPolicy que você acabou de gerar como se fosse a Natasha Romanoff. Levante tudo que pode estar errado, permissivo demais, ou faltando.\r\n2. **Perguntas de verificação:** liste pelo menos 3 perguntas que um revisor de segurança faria sobre a política.\r\n3. **Refino:** com base na sua própria crítica, produza uma v2 corrigida.\r\n4. **Repita** o processo de crítica e refino até que você considere a política pronta para aprovação.\r\n\r\nRegistre cada iteração claramente.\r\n```\r\n",
+          "label": "devops\\networkpolicy-sentinel\\prompt.md: ---\r\nnome: \"Revisão e Correção de NetworkPolicy — ...",
+          "config": {}
+        },
+        "promptId": "cc3fced1556c9a4ce02812fb33c402091da93c92633b946c93a1ed798d83cfff",
+        "promptIdx": 0,
+        "provider": {
+          "id": "openai:gpt-4o-mini",
+          "label": ""
+        },
+        "response": {
+          "output": "## Versão 1 (v1) - NetworkPolicy Corrigida\n\n```yaml\napiVersion: networking.k8s.io/v1\nkind: NetworkPolicy\nmetadata:\n  name: sentinel-network-policy\n  namespace: sentinel-prod\nspec:\n  podSelector:\n    matchLabels:\n      app: sentinel\n  policyTypes:\n    - Ingress\n    - Egress\n  ingress:\n    - from:\n        - podSelector:\n            matchLabels:\n              app: relay  # Permite tráfego de entrada do Relay para consumo de eventos\n        - podSelector:\n            matchLabels:\n              app: api-gateway  # Permite tráfego de entrada do API Gateway\n  egress:\n    - to:\n        - podSelector:\n            matchLabels:\n              app: forge  # Permite tráfego de saída para o Forge (porta 5432)\n          ports:\n            - port: 5432\n        - podSelector:\n            matchLabels:\n              app: cerebro  # Permite tráfego de saída para o Cerebro (porta 9200)\n          ports:\n            - port: 9200\n        - podSelector:\n            matchLabels:\n              k8s-app: kube-dns  # Permite tráfego de saída para o DNS interno (porta 53)\n          ports:\n            - port: 53\n```\n\n## Auto-revisão da v1\n\n1. **Crítica:** A política parece estar em conformidade com os requisitos, mas a definição de `podSelector` para o `ingress` e `egress` é muito específica. Poderia haver uma preocupação com a possibilidade de que novos pods com as mesmas labels possam ser criados e não sejam intencionalmente permitidos.\n2. **Permissividade:** A política não é permissiva, mas a falta de um `namespaceSelector` pode permitir que pods de outros namespaces acessem os serviços, o que não é desejável.\n3. **Faltando:** Não há uma política de `default-deny` explícita, o que é um requisito.\n\n### Perguntas de verificação\n\n1. A política garante que apenas os pods do namespace `sentinel-prod` possam se comunicar com os serviços permitidos?\n2. Existe alguma possibilidade de que novos pods com as mesmas labels sejam criados em outros namespaces e possam se comunicar?\n3. A política de `default-deny` está claramente definida para evitar tráfego não autorizado?\n\n## Versão 2 (v2) - NetworkPolicy Corrigida\n\n```yaml\napiVersion: networking.k8s.io/v1\nkind: NetworkPolicy\nmetadata:\n  name: sentinel-network-policy\n  namespace: sentinel-prod\nspec:\n  podSelector:\n    matchLabels:\n      app: sentinel\n  policyTypes:\n    - Ingress\n    - Egress\n  ingress:\n    - from:\n        - namespaceSelector:\n            matchLabels:\n              name: relay-prod  # Permite tráfego de entrada do Relay para consumo de eventos\n          podSelector:\n            matchLabels:\n              app: relay\n        - namespaceSelector:\n            matchLabels:\n              name: edge  # Permite tráfego de entrada do API Gateway\n          podSelector:\n            matchLabels:\n              app: api-gateway\n  egress:\n    - to:\n        - namespaceSelector:\n            matchLabels:\n              name: forge-prod  # Permite tráfego de saída para o Forge (porta 5432)\n          podSelector:\n            matchLabels:\n              app: forge\n          ports:\n            - port: 5432\n        - namespaceSelector:\n            matchLabels:\n              name: cerebro-prod  # Permite tráfego de saída para o Cerebro (porta 9200)\n          podSelector:\n            matchLabels:\n              app: cerebro\n          ports:\n            - port: 9200\n        - namespaceSelector:\n            matchLabels:\n              name: kube-system  # Permite tráfego de saída para o DNS interno (porta 53)\n          podSelector:\n            matchLabels:\n              k8s-app: kube-dns\n          ports:\n            - port: 53\n```\n\n## Auto-revisão da v2\n\n1. **Crítica:** A política agora inclui `namespaceSelector`, o que é uma melhoria significativa. No entanto, ainda não está claro se a política de `default-deny` está sendo aplicada corretamente.\n2. **Permissividade:** A política parece estar bem restrita, mas é importante garantir que não haja outros pods com as mesmas labels em namespaces não autorizados.\n3. **Faltando:** A política de `default-deny` ainda não foi explicitamente definida.\n\n### Perguntas de verificação\n\n1. A política garante que apenas os pods do namespace `sentinel-prod` possam se comunicar com os serviços permitidos?\n2. Existe alguma possibilidade de que novos pods com as mesmas labels sejam criados em outros namespaces e possam se comunicar?\n3. A política de `default-deny`",
+          "tokenUsage": {
+            "total": 1855,
+            "prompt": 831,
+            "completion": 1024,
+            "numRequests": 1,
+            "completionDetails": {
+              "reasoning": 0,
+              "acceptedPrediction": 0,
+              "rejectedPrediction": 0
+            }
+          },
+          "cached": false,
+          "latencyMs": 39668,
+          "finishReason": "length",
+          "cost": 0.00073905,
+          "guardrails": {
+            "flagged": false
+          },
+          "metadata": {
+            "http": {
+              "status": 200,
+              "statusText": "OK",
+              "headers": {
+                "access-control-expose-headers": "X-Request-ID,CF-Ray,CF-Ray",
+                "alt-svc": "h3=\":443\"; ma=86400",
+                "cf-cache-status": "[REDACTED]",
+                "cf-ray": "[REDACTED]",
+                "connection": "keep-alive",
+                "content-type": "application/json",
+                "date": "Thu, 25 Jun 2026 22:04:39 GMT",
+                "openai-organization": "[REDACTED]",
+                "openai-processing-ms": "39414",
+                "openai-project": "[REDACTED]",
+                "openai-version": "[REDACTED]",
+                "server": "cloudflare",
+                "set-cookie": "[REDACTED]",
+                "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+                "transfer-encoding": "chunked",
+                "x-content-type-options": "nosniff",
+                "x-openai-proxy-wasm": "[REDACTED]",
+                "x-ratelimit-limit-requests": "[REDACTED]",
+                "x-ratelimit-limit-tokens": "[REDACTED]",
+                "x-ratelimit-remaining-requests": "[REDACTED]",
+                "x-ratelimit-remaining-tokens": "[REDACTED]",
+                "x-ratelimit-reset-requests": "[REDACTED]",
+                "x-ratelimit-reset-tokens": "[REDACTED]",
+                "x-request-id": "[REDACTED]"
+              }
+            }
+          }
+        },
+        "score": 0.8888888888888888,
+        "success": false,
+        "testCase": {
+          "vars": {
+            "manifesto_permissivo": "apiVersion: networking.k8s.io/v1 kind: NetworkPolicy metadata:\n  name: sentinel-allow\n  namespace: sentinel-prod\nspec:\n  podSelector: {}\n  policyTypes:\n    - Ingress\n    - Egress\n  ingress:\n    - {}\n  egress:\n    - {}\n",
+            "regras_padrao": "- pods do Sentinel só aceitam tráfego de entrada do Relay e do gateway de API - pods do Sentinel só fazem saída para: Forge (porta 5432), Cerebro (porta 9200) e DNS interno - nada de \"allow all\" em ingress ou egress - política default-deny explícita no namespace - toda regra precisa de comentário dizendo qual fluxo legítimo ela libera\n",
+            "mapa_servicos": "Sentinel     → namespace sentinel-prod, pods com label app=sentinel Relay        → namespace relay-prod,    pods com label app=relay API gateway  → namespace edge,          pods com label app=api-gateway Forge        → namespace forge-prod,    pods com label app=forge,   porta 5432 Cerebro      → namespace cerebro-prod,  pods com label app=cerebro, porta 9200 DNS interno  → namespace kube-system,   pods com label k8s-app=kube-dns, porta 53\n"
+          },
+          "assert": [
+            {
+              "type": "contains",
+              "value": "kind: NetworkPolicy"
+            },
+            {
+              "type": "contains",
+              "value": "Ingress"
+            },
+            {
+              "type": "contains",
+              "value": "Egress"
+            },
+            {
+              "type": "javascript",
+              "value": "!output.includes('- {}') && !output.includes('ingress: - {}') && !output.includes('egress: - {}')"
+            },
+            {
+              "type": "contains",
+              "value": "5432"
+            },
+            {
+              "type": "contains",
+              "value": "9200"
+            },
+            {
+              "type": "contains",
+              "value": "app: relay"
+            },
+            {
+              "type": "regex",
+              "value": "#.*"
+            },
+            {
+              "type": "latency",
+              "threshold": 30000
+            }
+          ],
+          "options": {},
+          "metadata": {}
+        },
+        "testIdx": 0,
+        "tokenUsage": {
+          "prompt": 831,
+          "completion": 1024,
+          "cached": 0,
+          "total": 1855,
+          "numRequests": 1,
+          "completionDetails": {
+            "reasoning": 0,
+            "acceptedPrediction": 0,
+            "rejectedPrediction": 0,
+            "cacheReadInputTokens": 0,
+            "cacheCreationInputTokens": 0
+          },
+          "assertions": {
+            "total": 0,
+            "prompt": 0,
+            "completion": 0,
+            "cached": 0,
+            "numRequests": 1,
+            "completionDetails": {
+              "reasoning": 0,
+              "acceptedPrediction": 0,
+              "rejectedPrediction": 0,
+              "cacheReadInputTokens": 0,
+              "cacheCreationInputTokens": 0
+            }
+          }
+        },
+        "vars": {
+          "manifesto_permissivo": "apiVersion: networking.k8s.io/v1 kind: NetworkPolicy metadata:\n  name: sentinel-allow\n  namespace: sentinel-prod\nspec:\n  podSelector: {}\n  policyTypes:\n    - Ingress\n    - Egress\n  ingress:\n    - {}\n  egress:\n    - {}\n",
+          "regras_padrao": "- pods do Sentinel só aceitam tráfego de entrada do Relay e do gateway de API - pods do Sentinel só fazem saída para: Forge (porta 5432), Cerebro (porta 9200) e DNS interno - nada de \"allow all\" em ingress ou egress - política default-deny explícita no namespace - toda regra precisa de comentário dizendo qual fluxo legítimo ela libera\n",
+          "mapa_servicos": "Sentinel     → namespace sentinel-prod, pods com label app=sentinel Relay        → namespace relay-prod,    pods com label app=relay API gateway  → namespace edge,          pods com label app=api-gateway Forge        → namespace forge-prod,    pods com label app=forge,   porta 5432 Cerebro      → namespace cerebro-prod,  pods com label app=cerebro, porta 9200 DNS interno  → namespace kube-system,   pods com label k8s-app=kube-dns, porta 53\n"
+        },
+        "metadata": {
+          "http": {
+            "status": 200,
+            "statusText": "OK",
+            "headers": {
+              "access-control-expose-headers": "X-Request-ID,CF-Ray,CF-Ray",
+              "alt-svc": "h3=\":443\"; ma=86400",
+              "cf-cache-status": "[REDACTED]",
+              "cf-ray": "[REDACTED]",
+              "connection": "keep-alive",
+              "content-type": "application/json",
+              "date": "Thu, 25 Jun 2026 22:04:39 GMT",
+              "openai-organization": "[REDACTED]",
+              "openai-processing-ms": "39414",
+              "openai-project": "[REDACTED]",
+              "openai-version": "[REDACTED]",
+              "server": "cloudflare",
+              "set-cookie": "[REDACTED]",
+              "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+              "transfer-encoding": "chunked",
+              "x-content-type-options": "nosniff",
+              "x-openai-proxy-wasm": "[REDACTED]",
+              "x-ratelimit-limit-requests": "[REDACTED]",
+              "x-ratelimit-limit-tokens": "[REDACTED]",
+              "x-ratelimit-remaining-requests": "[REDACTED]",
+              "x-ratelimit-remaining-tokens": "[REDACTED]",
+              "x-ratelimit-reset-requests": "[REDACTED]",
+              "x-ratelimit-reset-tokens": "[REDACTED]",
+              "x-request-id": "[REDACTED]"
+            }
+          },
+          "_promptfooFileMetadata": {}
+        },
+        "failureReason": 1
+      }
+    ],
+    "stats": {
+      "successes": 0,
+      "failures": 1,
+      "errors": 0,
+      "tokenUsage": {
+        "prompt": 831,
+        "completion": 1024,
+        "cached": 0,
+        "total": 1855,
+        "numRequests": 1,
+        "completionDetails": {
+          "reasoning": 0,
+          "acceptedPrediction": 0,
+          "rejectedPrediction": 0,
+          "cacheReadInputTokens": 0,
+          "cacheCreationInputTokens": 0
+        },
+        "assertions": {
+          "total": 0,
+          "prompt": 0,
+          "completion": 0,
+          "cached": 0,
+          "numRequests": 0,
+          "completionDetails": {
+            "reasoning": 0,
+            "acceptedPrediction": 0,
+            "rejectedPrediction": 0,
+            "cacheReadInputTokens": 0,
+            "cacheCreationInputTokens": 0
+          }
+        }
+      },
+      "durationMs": 39734,
+      "evaluationDurationMs": 39734
+    }
+  },
+  "config": {
+    "tags": {},
+    "prompts": [
+      "file://C:\\Users\\Juarez\\Documents\\00 Pos Graduação AIOPS\\02 - Engenharia de Prompt e contexto\\DESAFIOS\\Playbook-IA\\aegis-operational_prompt_library\\devops\\networkpolicy-sentinel\\prompt.md"
+    ],
+    "providers": [
+      "openai:gpt-4o-mini"
+    ],
+    "tests": [
+      {
+        "vars": {
+          "manifesto_permissivo": "apiVersion: networking.k8s.io/v1 kind: NetworkPolicy metadata:\n  name: sentinel-allow\n  namespace: sentinel-prod\nspec:\n  podSelector: {}\n  policyTypes:\n    - Ingress\n    - Egress\n  ingress:\n    - {}\n  egress:\n    - {}\n",
+          "regras_padrao": "- pods do Sentinel só aceitam tráfego de entrada do Relay e do gateway de API - pods do Sentinel só fazem saída para: Forge (porta 5432), Cerebro (porta 9200) e DNS interno - nada de \"allow all\" em ingress ou egress - política default-deny explícita no namespace - toda regra precisa de comentário dizendo qual fluxo legítimo ela libera\n",
+          "mapa_servicos": "Sentinel     → namespace sentinel-prod, pods com label app=sentinel Relay        → namespace relay-prod,    pods com label app=relay API gateway  → namespace edge,          pods com label app=api-gateway Forge        → namespace forge-prod,    pods com label app=forge,   porta 5432 Cerebro      → namespace cerebro-prod,  pods com label app=cerebro, porta 9200 DNS interno  → namespace kube-system,   pods com label k8s-app=kube-dns, porta 53\n"
+        },
+        "assert": [
+          {
+            "type": "contains",
+            "value": "kind: NetworkPolicy"
+          },
+          {
+            "type": "contains",
+            "value": "Ingress"
+          },
+          {
+            "type": "contains",
+            "value": "Egress"
+          },
+          {
+            "type": "javascript",
+            "value": "!output.includes('- {}') && !output.includes('ingress: - {}') && !output.includes('egress: - {}')"
+          },
+          {
+            "type": "contains",
+            "value": "5432"
+          },
+          {
+            "type": "contains",
+            "value": "9200"
+          },
+          {
+            "type": "contains",
+            "value": "app: relay"
+          },
+          {
+            "type": "regex",
+            "value": "#.*"
+          },
+          {
+            "type": "latency",
+            "threshold": 30000
+          }
+        ]
+      }
+    ],
+    "env": {},
+    "outputPath": [
+      "resultados/networkpolicy-sentinel.json"
+    ],
+    "extensions": [],
+    "metadata": {},
+    "evaluateOptions": {}
+  },
+  "shareableUrl": null,
+  "metadata": {
+    "promptfooVersion": "0.121.17",
+    "nodeVersion": "v24.11.1",
+    "platform": "win32",
+    "arch": "x64",
+    "exportedAt": "2026-06-25T22:04:39.268Z",
+    "evaluationCreatedAt": "2026-06-25T22:03:59.427Z",
+    "author": "profjuarez2022@gmail.com"
+  },
+  "vars": [
+    "manifesto_permissivo",
+    "regras_padrao",
+    "mapa_servicos"
+  ],
+  "runtimeOptions": {
+    "eventSource": "cli",
+    "showProgressBar": true,
+    "repeat": 1,
+    "maxConcurrency": 4,
+    "cache": false
+  }
+}

@@ -1,0 +1,368 @@
+{
+  "evalId": "eval-nSK-2026-06-25T22:05:45",
+  "results": {
+    "version": 3,
+    "timestamp": "2026-06-25T22:05:45.808Z",
+    "prompts": [
+      {
+        "raw": "# promptfooconfig.yaml — Migração Forge (LLM-as-judge)\r\n# 3 prompts independentes, cada um com seu próprio test case\r\n\r\nprompts:\r\n  - file://prompt.md\r\n  - file://prompt.md\r\n  - file://prompt.md\r\n\r\nproviders:\r\n  - openai:gpt-4o-mini\r\n\r\ntests:\r\n  ## Teste 1 — Diagnóstico (apenas prompt 0)\r\n  - description: \"Elo 1 — Diagnóstico do estado atual do Forge\"\r\n    prompts:\r\n      - 0\r\n    vars:\r\n      estado_atual_forge: |\r\n        Forge hoje:\r\n        - ingestão: um job em cron acorda a cada 60min (o \"forge-batch-ingest\")\r\n        - transformação: 14 etapas de processamento encadeadas (em Spark), ~40min no total\r\n        - destino: grava em tabelas no data warehouse, particionadas por hora\r\n        - ponto frágil: se um lote falha, o próximo acumula o dobro de volume\r\n        - quem depende do Forge: Sentinel (lê as tabelas agregadas), Cerebro (indexa\r\n          os eventos transformados) e os relatórios de billing da Pepper (rodam de madrugada)\r\n      requisitos_migracao: |\r\n        - consumir do Relay continuamente, processando em pequenos blocos no lugar do lote de 1h\r\n        - manter quem depende do Forge funcionando durante a transição\r\n        - nada de virada única (big-bang): a migração tem que ir em passos e poder voltar atrás\r\n    assert:\r\n      - type: llm-rubric\r\n        value: |\r\n          Avalie o diagnóstico nos 2 critérios abaixo (0-2 cada, total 0-4):\r\n\r\n          ## Critério 1 — Precisão do diagnóstico (0-2)\r\n          Identifica corretamente os pontos frágeis: batch de 1h, acúmulo de falha, dependências?\r\n          Nota 0: Diagnóstico genérico ou incorreto.\r\n          Nota 1: Parcialmente correto, omite algum ponto frágil.\r\n          Nota 2: Diagnóstico completo e preciso.\r\n\r\n          ## Critério 2 — Clareza da exposição (0-2)\r\n          O diagnóstico é estruturado e claro para servir de entrada para o próximo elo?\r\n          Nota 0: Confuso ou desestruturado.\r\n          Nota 1: Estruturado mas com lacunas.\r\n          Nota 2: Clareza total, pronto para o próximo elo.\r\n\r\n          Corte: total >= 3. Se total < 3, REPROVADO.\r\n\r\n  ## Teste 2 — Etapas da migração (apenas prompt 1)\r\n  - description: \"Elo 2 — Etapas da migração (incremental e reversível)\"\r\n    prompts:\r\n      - 1\r\n    vars:\r\n      diagnostico_forge: |\r\n        Diagnóstico do Forge:\r\n        - Gargalo principal: pipeline batch de 60min com 14 etapas encadeadas em Spark (~40min)\r\n        - Ponto frágil: falha em lote acumula o dobro no próximo\r\n        - Dependentes críticos: Sentinel (agregados), Cerebro (indexação), billing (relatórios madrugada)\r\n        - Objetivo da migração: consumir do Relay continuamente em pequenos blocos\r\n        - Restrição: nada de big-bang, migração em passos reversíveis\r\n    assert:\r\n      - type: llm-rubric\r\n        value: |\r\n          Avalie as etapas propostas nos 2 critérios abaixo (0-2 cada, total 0-4):\r\n\r\n          ## Critério 1 — Progressividade (0-2)\r\n          As etapas são incrementais e reversíveis (nada de big-bang)?\r\n          Nota 0: Propõe migração única.\r\n          Nota 1: Etapas existem mas não são reversíveis.\r\n          Nota 2: Etapas incrementais com rollback explícito.\r\n\r\n          ## Critério 2 — Cobertura de dependências (0-2)\r\n          Considera os dependentes (Sentinel, Cerebro, billing) durante a transição?\r\n          Nota 0: Ignora dependentes.\r\n          Nota 1: Menciona mas não detalha.\r\n          Nota 2: Dependentes considerados em cada etapa.\r\n\r\n          Corte: total >= 3. Se total < 3, REPROVADO.\r\n\r\n  ## Teste 3 — Plano executável (apenas prompt 2)\r\n  - description: \"Elo 3 — Plano executável e reversível\"\r\n    prompts:\r\n      - 2\r\n    vars:\r\n      etapas_migracao: |\r\n        Etapas da migração:\r\n        1. Introduzir eventos de monitoramento no Forge (sem alterar lógica de processamento)\r\n        2. Criar consumer paralelo ao batch job, processando em micro-batches\r\n        3. Migrar gradualmente os consumidores do batch para o stream\r\n        4. Descomissionar o batch job após validação\r\n        Requisitos: cada etapa deve ter rollback documentado\r\n    assert:\r\n      - type: llm-rubric\r\n        value: |\r\n          Avalie o plano nos 2 critérios abaixo (0-2 cada, total 0-4):\r\n\r\n          ## Critério 1 — Executabilidade (0-2)\r\n          O plano tem ações concretas (comandos, configurações, passos técnicos)?\r\n          Nota 0: Apenas conceitual.\r\n          Nota 1: Ações genéricas.\r\n          Nota 2: Passos técnicos específicos e executáveis.\r\n\r\n          ## Critério 2 — Reversibilidade (0-2)\r\n          Cada etapa tem rollback documentado?\r\n          Nota 0: Sem rollback.\r\n          Nota 1: Rollback mencionado mas não detalhado.\r\n          Nota 2: Rollback explícito por etapa.\r\n\r\n          Corte: total >= 3. Se total < 3, REPROVADO.",
+        "label": "devops\\migracao-forge\\01-Diagnostico\\prompt.md: # promptfooconfig.yaml — Migração Forge (LLM-as-ju...",
+        "id": "28a231dd0b101d2d7c037d3263e5ebe68840a9736bfb87e7bf1f34356d33d704",
+        "provider": "openai:gpt-4o-mini",
+        "metrics": {
+          "score": 1,
+          "testPassCount": 1,
+          "testFailCount": 0,
+          "testErrorCount": 0,
+          "assertPassCount": 1,
+          "assertFailCount": 0,
+          "totalLatencyMs": 13390,
+          "tokenUsage": {
+            "prompt": 1239,
+            "completion": 1024,
+            "cached": 0,
+            "total": 2263,
+            "numRequests": 1,
+            "completionDetails": {
+              "reasoning": 0,
+              "acceptedPrediction": 0,
+              "rejectedPrediction": 0,
+              "cacheReadInputTokens": 0,
+              "cacheCreationInputTokens": 0
+            },
+            "assertions": {
+              "total": 1891,
+              "prompt": 1392,
+              "completion": 499,
+              "cached": 0,
+              "numRequests": 0,
+              "completionDetails": {
+                "reasoning": 0,
+                "acceptedPrediction": 0,
+                "rejectedPrediction": 0,
+                "cacheReadInputTokens": 0,
+                "cacheCreationInputTokens": 0
+              }
+            }
+          },
+          "namedScores": {},
+          "namedScoresCount": {},
+          "namedScoreWeights": {},
+          "cost": 0.00080025
+        }
+      }
+    ],
+    "results": [
+      {
+        "cost": 0.00080025,
+        "gradingResult": {
+          "pass": true,
+          "score": 1,
+          "reason": "All assertions passed",
+          "namedScores": {},
+          "tokensUsed": {
+            "total": 1891,
+            "prompt": 1392,
+            "completion": 499,
+            "cached": 0,
+            "numRequests": 1
+          },
+          "componentResults": [
+            {
+              "assertion": {
+                "type": "llm-rubric",
+                "value": "Avalie o diagnóstico nos 2 critérios abaixo (0-2 cada, total 0-4):\n\n## Critério 1 — Precisão do diagnóstico (0-2)\nIdentifica corretamente os pontos frágeis: batch de 1h, acúmulo de falha, dependências?\nNota 0: Diagnóstico genérico ou incorreto.\nNota 1: Parcialmente correto, omite algum ponto frágil.\nNota 2: Diagnóstico completo e preciso.\n\n## Critério 2 — Clareza da exposição (0-2)\nO diagnóstico é estruturado e claro para servir de entrada para o próximo elo?\nNota 0: Confuso ou desestruturado.\nNota 1: Estruturado mas com lacunas.\nNota 2: Clareza total, pronto para o próximo elo.\n\nCorte: total >= 3. Se total < 3, REPROVADO.\n"
+              },
+              "pass": true,
+              "score": 1,
+              "reason": "O conteúdo inclui um diagnóstico explícito do Forge (em `diagnostico_forge` e nas variáveis do Teste 1), identificando o batch de 60min, as 14 etapas/Spark, o acúmulo quando há falha e os dependentes Sentinel, Cerebro e billing. A exposição está organizada em bullets e é clara o suficiente para alimentar o próximo elo. Critério 1: 2/2; Critério 2: 2/2; total: 4/4.",
+              "tokensUsed": {
+                "total": 1891,
+                "prompt": 1392,
+                "completion": 499,
+                "cached": 0,
+                "numRequests": 1,
+                "completionDetails": {
+                  "reasoning": 366,
+                  "acceptedPrediction": 0,
+                  "rejectedPrediction": 0
+                }
+              },
+              "metadata": {
+                "http": {
+                  "status": 200,
+                  "statusText": "OK",
+                  "headers": {
+                    "access-control-expose-headers": "X-Request-ID,CF-Ray,CF-Ray",
+                    "alt-svc": "h3=\":443\"; ma=86400",
+                    "cf-cache-status": "[REDACTED]",
+                    "cf-ray": "[REDACTED]",
+                    "connection": "keep-alive",
+                    "content-type": "application/json",
+                    "date": "Thu, 25 Jun 2026 22:06:08 GMT",
+                    "openai-organization": "[REDACTED]",
+                    "openai-processing-ms": "9089",
+                    "openai-project": "[REDACTED]",
+                    "openai-version": "[REDACTED]",
+                    "server": "cloudflare",
+                    "set-cookie": "[REDACTED]",
+                    "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+                    "transfer-encoding": "chunked",
+                    "x-content-type-options": "nosniff",
+                    "x-openai-proxy-wasm": "[REDACTED]",
+                    "x-ratelimit-limit-requests": "[REDACTED]",
+                    "x-ratelimit-limit-tokens": "[REDACTED]",
+                    "x-ratelimit-remaining-requests": "[REDACTED]",
+                    "x-ratelimit-remaining-tokens": "[REDACTED]",
+                    "x-ratelimit-reset-requests": "[REDACTED]",
+                    "x-ratelimit-reset-tokens": "[REDACTED]",
+                    "x-request-id": "[REDACTED]"
+                  }
+                },
+                "renderedGradingPrompt": "[{\"role\":\"system\",\"content\":\"You are grading output according to a user-specified rubric. If the statement in the rubric is true, then the output passes the test. You respond with a JSON object with this structure: {reason: string, pass: boolean, score: number}\\n\\nExamples:\\n\\n<Output>Hello world</Output>\\n<Rubric>Content contains a greeting</Rubric>\\n{\\\"reason\\\": \\\"the content contains the word 'Hello'\\\", \\\"pass\\\": true, \\\"score\\\": 1.0}\\n\\n<Output>Avast ye swabs, repel the invaders!</Output>\\n<Rubric>Does not speak like a pirate</Rubric>\\n{\\\"reason\\\": \\\"'avast ye' is a common pirate term\\\", \\\"pass\\\": false, \\\"score\\\": 0.0}\"},{\"role\":\"user\",\"content\":\"<Output>\\n```yaml\\n# promptfooconfig.yaml — Migração Forge (LLM-as-judge)\\n# 3 prompts independentes, cada um com seu próprio test case\\n\\nprompts:\\n  - file://prompt.md\\n  - file://prompt.md\\n  - file://prompt.md\\n\\nproviders:\\n  - openai:gpt-4o-mini\\n\\ntests:\\n  ## Teste 1 — Diagnóstico (apenas prompt 0)\\n  - description: \\\"Elo 1 — Diagnóstico do estado atual do Forge\\\"\\n    prompts:\\n      - 0\\n    vars:\\n      estado_atual_forge: |\\n        Forge hoje:\\n        - ingestão: um job em cron acorda a cada 60min (o \\\"forge-batch-ingest\\\")\\n        - transformação: 14 etapas de processamento encadeadas (em Spark), ~40min no total\\n        - destino: grava em tabelas no data warehouse, particionadas por hora\\n        - ponto frágil: se um lote falha, o próximo acumula o dobro de volume\\n        - quem depende do Forge: Sentinel (lê as tabelas agregadas), Cerebro (indexa\\n          os eventos transformados) e os relatórios de billing da Pepper (rodam de madrugada)\\n      requisitos_migracao: |\\n        - consumir do Relay continuamente, processando em pequenos blocos no lugar do lote de 1h\\n        - manter quem depende do Forge funcionando durante a transição\\n        - nada de virada única (big-bang): a migração tem que ir em passos e poder voltar atrás\\n    assert:\\n      - type: llm-rubric\\n        value: |\\n          Avalie o diagnóstico nos 2 critérios abaixo (0-2 cada, total 0-4):\\n\\n          ## Critério 1 — Precisão do diagnóstico (0-2)\\n          Identifica corretamente os pontos frágeis: batch de 1h, acúmulo de falha, dependências?\\n          Nota 0: Diagnóstico genérico ou incorreto.\\n          Nota 1: Parcialmente correto, omite algum ponto frágil.\\n          Nota 2: Diagnóstico completo e preciso.\\n\\n          ## Critério 2 — Clareza da exposição (0-2)\\n          O diagnóstico é estruturado e claro para servir de entrada para o próximo elo?\\n          Nota 0: Confuso ou desestruturado.\\n          Nota 1: Estruturado mas com lacunas.\\n          Nota 2: Clareza total, pronto para o próximo elo.\\n\\n          Corte: total >= 3. Se total < 3, REPROVADO.\\n\\n  ## Teste 2 — Etapas da migração (apenas prompt 1)\\n  - description: \\\"Elo 2 — Etapas da migração (incremental e reversível)\\\"\\n    prompts:\\n      - 1\\n    vars:\\n      diagnostico_forge: |\\n        Diagnóstico do Forge:\\n        - Gargalo principal: pipeline batch de 60min com 14 etapas encadeadas em Spark (~40min)\\n        - Ponto frágil: falha em lote acumula o dobro no próximo\\n        - Dependentes críticos: Sentinel (agregados), Cerebro (indexação), billing (relatórios madrugada)\\n        - Objetivo da migração: consumir do Relay continuamente em pequenos blocos\\n        - Restrição: nada de big-bang, migração em passos reversíveis\\n    assert:\\n      - type: llm-rubric\\n        value: |\\n          Avalie as etapas propostas nos 2 critérios abaixo (0-2 cada, total 0-4):\\n\\n          ## Critério 1 — Progressividade (0-2)\\n          As etapas são incrementais e reversíveis (nada de big-bang)?\\n          Nota 0: Propõe migração única.\\n          Nota 1: Etapas existem mas não são reversíveis.\\n          Nota 2: Etapas incrementais com rollback explícito.\\n\\n          ## Critério 2 — Cobertura de dependências (0-2)\\n          Considera os dependentes (Sentinel, Cerebro, billing) durante a transição?\\n          Nota 0: Ignora dependentes.\\n          Nota 1: Menciona mas não detalha.\\n          Nota 2: Dependentes considerados em cada etapa.\\n\\n          Corte: total >= 3. Se total < 3, REPROVADO.\\n\\n  ## Teste 3 — Plano executável (apenas prompt 2)\\n  - description: \\\"Elo 3 — Plano executável e reversível\\\"\\n    prompts:\\n      - 2\\n    vars:\\n      etapas_migracao: |\\n        Etapas da migração:\\n        1. Introduzir eventos de monitoramento no Forge (sem alterar lógica de processamento)\\n        2. Criar consumer paralelo ao batch job, processando em micro-batches\\n        3. Migrar gradualmente os consumidores do batch para\\n</Output>\\n<Rubric>\\nAvalie o diagnóstico nos 2 critérios abaixo (0-2 cada, total 0-4):\\n\\n## Critério 1 — Precisão do diagnóstico (0-2)\\nIdentifica corretamente os pontos frágeis: batch de 1h, acúmulo de falha, dependências?\\nNota 0: Diagnóstico genérico ou incorreto.\\nNota 1: Parcialmente correto, omite algum ponto frágil.\\nNota 2: Diagnóstico completo e preciso.\\n\\n## Critério 2 — Clareza da exposição (0-2)\\nO diagnóstico é estruturado e claro para servir de entrada para o próximo elo?\\nNota 0: Confuso ou desestruturado.\\nNota 1: Estruturado mas com lacunas.\\nNota 2: Clareza total, pronto para o próximo elo.\\n\\nCorte: total >= 3. Se total < 3, REPROVADO.\\n\\n</Rubric>\"}]"
+              }
+            }
+          ]
+        },
+        "id": "23be0b82-e227-4bde-b9c6-05fdfa5b56c7",
+        "latencyMs": 13390,
+        "namedScores": {},
+        "prompt": {
+          "raw": "# promptfooconfig.yaml — Migração Forge (LLM-as-judge)\r\n# 3 prompts independentes, cada um com seu próprio test case\r\n\r\nprompts:\r\n  - file://prompt.md\r\n  - file://prompt.md\r\n  - file://prompt.md\r\n\r\nproviders:\r\n  - openai:gpt-4o-mini\r\n\r\ntests:\r\n  ## Teste 1 — Diagnóstico (apenas prompt 0)\r\n  - description: \"Elo 1 — Diagnóstico do estado atual do Forge\"\r\n    prompts:\r\n      - 0\r\n    vars:\r\n      estado_atual_forge: |\r\n        Forge hoje:\r\n        - ingestão: um job em cron acorda a cada 60min (o \"forge-batch-ingest\")\r\n        - transformação: 14 etapas de processamento encadeadas (em Spark), ~40min no total\r\n        - destino: grava em tabelas no data warehouse, particionadas por hora\r\n        - ponto frágil: se um lote falha, o próximo acumula o dobro de volume\r\n        - quem depende do Forge: Sentinel (lê as tabelas agregadas), Cerebro (indexa\r\n          os eventos transformados) e os relatórios de billing da Pepper (rodam de madrugada)\r\n      requisitos_migracao: |\r\n        - consumir do Relay continuamente, processando em pequenos blocos no lugar do lote de 1h\r\n        - manter quem depende do Forge funcionando durante a transição\r\n        - nada de virada única (big-bang): a migração tem que ir em passos e poder voltar atrás\r\n    assert:\r\n      - type: llm-rubric\r\n        value: |\r\n          Avalie o diagnóstico nos 2 critérios abaixo (0-2 cada, total 0-4):\r\n\r\n          ## Critério 1 — Precisão do diagnóstico (0-2)\r\n          Identifica corretamente os pontos frágeis: batch de 1h, acúmulo de falha, dependências?\r\n          Nota 0: Diagnóstico genérico ou incorreto.\r\n          Nota 1: Parcialmente correto, omite algum ponto frágil.\r\n          Nota 2: Diagnóstico completo e preciso.\r\n\r\n          ## Critério 2 — Clareza da exposição (0-2)\r\n          O diagnóstico é estruturado e claro para servir de entrada para o próximo elo?\r\n          Nota 0: Confuso ou desestruturado.\r\n          Nota 1: Estruturado mas com lacunas.\r\n          Nota 2: Clareza total, pronto para o próximo elo.\r\n\r\n          Corte: total >= 3. Se total < 3, REPROVADO.\r\n\r\n  ## Teste 2 — Etapas da migração (apenas prompt 1)\r\n  - description: \"Elo 2 — Etapas da migração (incremental e reversível)\"\r\n    prompts:\r\n      - 1\r\n    vars:\r\n      diagnostico_forge: |\r\n        Diagnóstico do Forge:\r\n        - Gargalo principal: pipeline batch de 60min com 14 etapas encadeadas em Spark (~40min)\r\n        - Ponto frágil: falha em lote acumula o dobro no próximo\r\n        - Dependentes críticos: Sentinel (agregados), Cerebro (indexação), billing (relatórios madrugada)\r\n        - Objetivo da migração: consumir do Relay continuamente em pequenos blocos\r\n        - Restrição: nada de big-bang, migração em passos reversíveis\r\n    assert:\r\n      - type: llm-rubric\r\n        value: |\r\n          Avalie as etapas propostas nos 2 critérios abaixo (0-2 cada, total 0-4):\r\n\r\n          ## Critério 1 — Progressividade (0-2)\r\n          As etapas são incrementais e reversíveis (nada de big-bang)?\r\n          Nota 0: Propõe migração única.\r\n          Nota 1: Etapas existem mas não são reversíveis.\r\n          Nota 2: Etapas incrementais com rollback explícito.\r\n\r\n          ## Critério 2 — Cobertura de dependências (0-2)\r\n          Considera os dependentes (Sentinel, Cerebro, billing) durante a transição?\r\n          Nota 0: Ignora dependentes.\r\n          Nota 1: Menciona mas não detalha.\r\n          Nota 2: Dependentes considerados em cada etapa.\r\n\r\n          Corte: total >= 3. Se total < 3, REPROVADO.\r\n\r\n  ## Teste 3 — Plano executável (apenas prompt 2)\r\n  - description: \"Elo 3 — Plano executável e reversível\"\r\n    prompts:\r\n      - 2\r\n    vars:\r\n      etapas_migracao: |\r\n        Etapas da migração:\r\n        1. Introduzir eventos de monitoramento no Forge (sem alterar lógica de processamento)\r\n        2. Criar consumer paralelo ao batch job, processando em micro-batches\r\n        3. Migrar gradualmente os consumidores do batch para o stream\r\n        4. Descomissionar o batch job após validação\r\n        Requisitos: cada etapa deve ter rollback documentado\r\n    assert:\r\n      - type: llm-rubric\r\n        value: |\r\n          Avalie o plano nos 2 critérios abaixo (0-2 cada, total 0-4):\r\n\r\n          ## Critério 1 — Executabilidade (0-2)\r\n          O plano tem ações concretas (comandos, configurações, passos técnicos)?\r\n          Nota 0: Apenas conceitual.\r\n          Nota 1: Ações genéricas.\r\n          Nota 2: Passos técnicos específicos e executáveis.\r\n\r\n          ## Critério 2 — Reversibilidade (0-2)\r\n          Cada etapa tem rollback documentado?\r\n          Nota 0: Sem rollback.\r\n          Nota 1: Rollback mencionado mas não detalhado.\r\n          Nota 2: Rollback explícito por etapa.\r\n\r\n          Corte: total >= 3. Se total < 3, REPROVADO.",
+          "label": "devops\\migracao-forge\\01-Diagnostico\\prompt.md: # promptfooconfig.yaml — Migração Forge (LLM-as-ju...",
+          "config": {}
+        },
+        "promptId": "28a231dd0b101d2d7c037d3263e5ebe68840a9736bfb87e7bf1f34356d33d704",
+        "promptIdx": 0,
+        "provider": {
+          "id": "openai:gpt-4o-mini",
+          "label": ""
+        },
+        "response": {
+          "output": "```yaml\n# promptfooconfig.yaml — Migração Forge (LLM-as-judge)\n# 3 prompts independentes, cada um com seu próprio test case\n\nprompts:\n  - file://prompt.md\n  - file://prompt.md\n  - file://prompt.md\n\nproviders:\n  - openai:gpt-4o-mini\n\ntests:\n  ## Teste 1 — Diagnóstico (apenas prompt 0)\n  - description: \"Elo 1 — Diagnóstico do estado atual do Forge\"\n    prompts:\n      - 0\n    vars:\n      estado_atual_forge: |\n        Forge hoje:\n        - ingestão: um job em cron acorda a cada 60min (o \"forge-batch-ingest\")\n        - transformação: 14 etapas de processamento encadeadas (em Spark), ~40min no total\n        - destino: grava em tabelas no data warehouse, particionadas por hora\n        - ponto frágil: se um lote falha, o próximo acumula o dobro de volume\n        - quem depende do Forge: Sentinel (lê as tabelas agregadas), Cerebro (indexa\n          os eventos transformados) e os relatórios de billing da Pepper (rodam de madrugada)\n      requisitos_migracao: |\n        - consumir do Relay continuamente, processando em pequenos blocos no lugar do lote de 1h\n        - manter quem depende do Forge funcionando durante a transição\n        - nada de virada única (big-bang): a migração tem que ir em passos e poder voltar atrás\n    assert:\n      - type: llm-rubric\n        value: |\n          Avalie o diagnóstico nos 2 critérios abaixo (0-2 cada, total 0-4):\n\n          ## Critério 1 — Precisão do diagnóstico (0-2)\n          Identifica corretamente os pontos frágeis: batch de 1h, acúmulo de falha, dependências?\n          Nota 0: Diagnóstico genérico ou incorreto.\n          Nota 1: Parcialmente correto, omite algum ponto frágil.\n          Nota 2: Diagnóstico completo e preciso.\n\n          ## Critério 2 — Clareza da exposição (0-2)\n          O diagnóstico é estruturado e claro para servir de entrada para o próximo elo?\n          Nota 0: Confuso ou desestruturado.\n          Nota 1: Estruturado mas com lacunas.\n          Nota 2: Clareza total, pronto para o próximo elo.\n\n          Corte: total >= 3. Se total < 3, REPROVADO.\n\n  ## Teste 2 — Etapas da migração (apenas prompt 1)\n  - description: \"Elo 2 — Etapas da migração (incremental e reversível)\"\n    prompts:\n      - 1\n    vars:\n      diagnostico_forge: |\n        Diagnóstico do Forge:\n        - Gargalo principal: pipeline batch de 60min com 14 etapas encadeadas em Spark (~40min)\n        - Ponto frágil: falha em lote acumula o dobro no próximo\n        - Dependentes críticos: Sentinel (agregados), Cerebro (indexação), billing (relatórios madrugada)\n        - Objetivo da migração: consumir do Relay continuamente em pequenos blocos\n        - Restrição: nada de big-bang, migração em passos reversíveis\n    assert:\n      - type: llm-rubric\n        value: |\n          Avalie as etapas propostas nos 2 critérios abaixo (0-2 cada, total 0-4):\n\n          ## Critério 1 — Progressividade (0-2)\n          As etapas são incrementais e reversíveis (nada de big-bang)?\n          Nota 0: Propõe migração única.\n          Nota 1: Etapas existem mas não são reversíveis.\n          Nota 2: Etapas incrementais com rollback explícito.\n\n          ## Critério 2 — Cobertura de dependências (0-2)\n          Considera os dependentes (Sentinel, Cerebro, billing) durante a transição?\n          Nota 0: Ignora dependentes.\n          Nota 1: Menciona mas não detalha.\n          Nota 2: Dependentes considerados em cada etapa.\n\n          Corte: total >= 3. Se total < 3, REPROVADO.\n\n  ## Teste 3 — Plano executável (apenas prompt 2)\n  - description: \"Elo 3 — Plano executável e reversível\"\n    prompts:\n      - 2\n    vars:\n      etapas_migracao: |\n        Etapas da migração:\n        1. Introduzir eventos de monitoramento no Forge (sem alterar lógica de processamento)\n        2. Criar consumer paralelo ao batch job, processando em micro-batches\n        3. Migrar gradualmente os consumidores do batch para",
+          "tokenUsage": {
+            "total": 2263,
+            "prompt": 1239,
+            "completion": 1024,
+            "numRequests": 1,
+            "completionDetails": {
+              "reasoning": 0,
+              "acceptedPrediction": 0,
+              "rejectedPrediction": 0
+            }
+          },
+          "cached": false,
+          "latencyMs": 13390,
+          "finishReason": "length",
+          "cost": 0.00080025,
+          "guardrails": {
+            "flagged": false
+          },
+          "metadata": {
+            "http": {
+              "status": 200,
+              "statusText": "OK",
+              "headers": {
+                "access-control-expose-headers": "X-Request-ID,CF-Ray,CF-Ray",
+                "alt-svc": "h3=\":443\"; ma=86400",
+                "cf-cache-status": "[REDACTED]",
+                "cf-ray": "[REDACTED]",
+                "connection": "keep-alive",
+                "content-type": "application/json",
+                "date": "Thu, 25 Jun 2026 22:05:59 GMT",
+                "openai-organization": "[REDACTED]",
+                "openai-processing-ms": "13015",
+                "openai-project": "[REDACTED]",
+                "openai-version": "[REDACTED]",
+                "server": "cloudflare",
+                "set-cookie": "[REDACTED]",
+                "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+                "transfer-encoding": "chunked",
+                "x-content-type-options": "nosniff",
+                "x-openai-proxy-wasm": "[REDACTED]",
+                "x-ratelimit-limit-requests": "[REDACTED]",
+                "x-ratelimit-limit-tokens": "[REDACTED]",
+                "x-ratelimit-remaining-requests": "[REDACTED]",
+                "x-ratelimit-remaining-tokens": "[REDACTED]",
+                "x-ratelimit-reset-requests": "[REDACTED]",
+                "x-ratelimit-reset-tokens": "[REDACTED]",
+                "x-request-id": "[REDACTED]"
+              }
+            }
+          }
+        },
+        "score": 1,
+        "success": true,
+        "testCase": {
+          "description": "Elo 1 — Diagnóstico do estado atual do Forge",
+          "vars": {
+            "estado_atual_forge": "Forge hoje:\n- ingestão: um job em cron acorda a cada 60min (o \"forge-batch-ingest\")\n- transformação: 14 etapas de processamento encadeadas (em Spark), ~40min no total\n- destino: grava em tabelas no data warehouse, particionadas por hora\n- ponto frágil: se um lote falha, o próximo acumula o dobro de volume\n- quem depende do Forge: Sentinel (lê as tabelas agregadas), Cerebro (indexa\n  os eventos transformados) e os relatórios de billing da Pepper (rodam de madrugada)\n",
+            "requisitos_migracao": "- consumir do Relay continuamente, processando em pequenos blocos no lugar do lote de 1h\n- manter quem depende do Forge funcionando durante a transição\n- nada de virada única (big-bang): a migração tem que ir em passos e poder voltar atrás\n"
+          },
+          "assert": [
+            {
+              "type": "llm-rubric",
+              "value": "Avalie o diagnóstico nos 2 critérios abaixo (0-2 cada, total 0-4):\n\n## Critério 1 — Precisão do diagnóstico (0-2)\nIdentifica corretamente os pontos frágeis: batch de 1h, acúmulo de falha, dependências?\nNota 0: Diagnóstico genérico ou incorreto.\nNota 1: Parcialmente correto, omite algum ponto frágil.\nNota 2: Diagnóstico completo e preciso.\n\n## Critério 2 — Clareza da exposição (0-2)\nO diagnóstico é estruturado e claro para servir de entrada para o próximo elo?\nNota 0: Confuso ou desestruturado.\nNota 1: Estruturado mas com lacunas.\nNota 2: Clareza total, pronto para o próximo elo.\n\nCorte: total >= 3. Se total < 3, REPROVADO.\n"
+            }
+          ],
+          "options": {},
+          "metadata": {}
+        },
+        "testIdx": 0,
+        "tokenUsage": {
+          "prompt": 1239,
+          "completion": 1024,
+          "cached": 0,
+          "total": 2263,
+          "numRequests": 1,
+          "completionDetails": {
+            "reasoning": 0,
+            "acceptedPrediction": 0,
+            "rejectedPrediction": 0,
+            "cacheReadInputTokens": 0,
+            "cacheCreationInputTokens": 0
+          },
+          "assertions": {
+            "total": 1891,
+            "prompt": 1392,
+            "completion": 499,
+            "cached": 0,
+            "numRequests": 1,
+            "completionDetails": {
+              "reasoning": 0,
+              "acceptedPrediction": 0,
+              "rejectedPrediction": 0,
+              "cacheReadInputTokens": 0,
+              "cacheCreationInputTokens": 0
+            }
+          }
+        },
+        "vars": {
+          "estado_atual_forge": "Forge hoje:\n- ingestão: um job em cron acorda a cada 60min (o \"forge-batch-ingest\")\n- transformação: 14 etapas de processamento encadeadas (em Spark), ~40min no total\n- destino: grava em tabelas no data warehouse, particionadas por hora\n- ponto frágil: se um lote falha, o próximo acumula o dobro de volume\n- quem depende do Forge: Sentinel (lê as tabelas agregadas), Cerebro (indexa\n  os eventos transformados) e os relatórios de billing da Pepper (rodam de madrugada)\n",
+          "requisitos_migracao": "- consumir do Relay continuamente, processando em pequenos blocos no lugar do lote de 1h\n- manter quem depende do Forge funcionando durante a transição\n- nada de virada única (big-bang): a migração tem que ir em passos e poder voltar atrás\n"
+        },
+        "metadata": {
+          "http": {
+            "status": 200,
+            "statusText": "OK",
+            "headers": {
+              "access-control-expose-headers": "X-Request-ID,CF-Ray,CF-Ray",
+              "alt-svc": "h3=\":443\"; ma=86400",
+              "cf-cache-status": "[REDACTED]",
+              "cf-ray": "[REDACTED]",
+              "connection": "keep-alive",
+              "content-type": "application/json",
+              "date": "Thu, 25 Jun 2026 22:05:59 GMT",
+              "openai-organization": "[REDACTED]",
+              "openai-processing-ms": "13015",
+              "openai-project": "[REDACTED]",
+              "openai-version": "[REDACTED]",
+              "server": "cloudflare",
+              "set-cookie": "[REDACTED]",
+              "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+              "transfer-encoding": "chunked",
+              "x-content-type-options": "nosniff",
+              "x-openai-proxy-wasm": "[REDACTED]",
+              "x-ratelimit-limit-requests": "[REDACTED]",
+              "x-ratelimit-limit-tokens": "[REDACTED]",
+              "x-ratelimit-remaining-requests": "[REDACTED]",
+              "x-ratelimit-remaining-tokens": "[REDACTED]",
+              "x-ratelimit-reset-requests": "[REDACTED]",
+              "x-ratelimit-reset-tokens": "[REDACTED]",
+              "x-request-id": "[REDACTED]"
+            }
+          },
+          "_promptfooFileMetadata": {}
+        },
+        "failureReason": 0
+      }
+    ],
+    "stats": {
+      "successes": 1,
+      "failures": 0,
+      "errors": 0,
+      "tokenUsage": {
+        "prompt": 1239,
+        "completion": 1024,
+        "cached": 0,
+        "total": 2263,
+        "numRequests": 1,
+        "completionDetails": {
+          "reasoning": 0,
+          "acceptedPrediction": 0,
+          "rejectedPrediction": 0,
+          "cacheReadInputTokens": 0,
+          "cacheCreationInputTokens": 0
+        },
+        "assertions": {
+          "total": 1891,
+          "prompt": 1392,
+          "completion": 499,
+          "cached": 0,
+          "numRequests": 0,
+          "completionDetails": {
+            "reasoning": 0,
+            "acceptedPrediction": 0,
+            "rejectedPrediction": 0,
+            "cacheReadInputTokens": 0,
+            "cacheCreationInputTokens": 0
+          }
+        }
+      },
+      "durationMs": 22798,
+      "evaluationDurationMs": 22798
+    }
+  },
+  "config": {
+    "tags": {},
+    "prompts": [
+      "file://C:\\Users\\Juarez\\Documents\\00 Pos Graduação AIOPS\\02 - Engenharia de Prompt e contexto\\DESAFIOS\\Playbook-IA\\aegis-operational_prompt_library\\devops\\migracao-forge\\01-Diagnostico\\prompt.md"
+    ],
+    "providers": [
+      "openai:gpt-4o-mini"
+    ],
+    "tests": [
+      {
+        "description": "Elo 1 — Diagnóstico do estado atual do Forge",
+        "vars": {
+          "estado_atual_forge": "Forge hoje:\n- ingestão: um job em cron acorda a cada 60min (o \"forge-batch-ingest\")\n- transformação: 14 etapas de processamento encadeadas (em Spark), ~40min no total\n- destino: grava em tabelas no data warehouse, particionadas por hora\n- ponto frágil: se um lote falha, o próximo acumula o dobro de volume\n- quem depende do Forge: Sentinel (lê as tabelas agregadas), Cerebro (indexa\n  os eventos transformados) e os relatórios de billing da Pepper (rodam de madrugada)\n",
+          "requisitos_migracao": "- consumir do Relay continuamente, processando em pequenos blocos no lugar do lote de 1h\n- manter quem depende do Forge funcionando durante a transição\n- nada de virada única (big-bang): a migração tem que ir em passos e poder voltar atrás\n"
+        },
+        "assert": [
+          {
+            "type": "llm-rubric",
+            "value": "Avalie o diagnóstico nos 2 critérios abaixo (0-2 cada, total 0-4):\n\n## Critério 1 — Precisão do diagnóstico (0-2)\nIdentifica corretamente os pontos frágeis: batch de 1h, acúmulo de falha, dependências?\nNota 0: Diagnóstico genérico ou incorreto.\nNota 1: Parcialmente correto, omite algum ponto frágil.\nNota 2: Diagnóstico completo e preciso.\n\n## Critério 2 — Clareza da exposição (0-2)\nO diagnóstico é estruturado e claro para servir de entrada para o próximo elo?\nNota 0: Confuso ou desestruturado.\nNota 1: Estruturado mas com lacunas.\nNota 2: Clareza total, pronto para o próximo elo.\n\nCorte: total >= 3. Se total < 3, REPROVADO.\n"
+          }
+        ]
+      }
+    ],
+    "env": {},
+    "outputPath": [
+      "resultados/migracao-forge-01.json"
+    ],
+    "extensions": [],
+    "metadata": {},
+    "evaluateOptions": {}
+  },
+  "shareableUrl": null,
+  "metadata": {
+    "promptfooVersion": "0.121.17",
+    "nodeVersion": "v24.11.1",
+    "platform": "win32",
+    "arch": "x64",
+    "exportedAt": "2026-06-25T22:06:08.768Z",
+    "evaluationCreatedAt": "2026-06-25T22:05:45.808Z",
+    "author": "profjuarez2022@gmail.com"
+  },
+  "vars": [
+    "estado_atual_forge",
+    "requisitos_migracao"
+  ],
+  "runtimeOptions": {
+    "eventSource": "cli",
+    "showProgressBar": true,
+    "repeat": 1,
+    "maxConcurrency": 4,
+    "cache": false
+  }
+}

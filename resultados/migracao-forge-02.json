@@ -1,0 +1,364 @@
+{
+  "evalId": "eval-8NZ-2026-06-25T22:06:13",
+  "results": {
+    "version": 3,
+    "timestamp": "2026-06-25T22:06:13.065Z",
+    "prompts": [
+      {
+        "raw": "---\r\nnome: \"Etapas da Migração do Forge\"\r\ndescricao: \"A partir do diagnóstico do Forge, propõe etapas ordenadas de migração de batch para event-driven, cada uma com critério de rollback.\"\r\nversao: \"1.0.0\"\r\ntags:\r\n  - migracao\r\n  - forge\r\n  - etapas\r\n  - planejamento\r\n  - aegis\r\ninputs:\r\n  - nome: diagnostico_forge\r\n    descricao: \"Saída do prompt de diagnóstico com gargalos, riscos, dependências e critérios de sucesso\"\r\n---\r\n\r\n# Prompt: Etapas da Migração do Forge (Aegis)\r\n\r\nVocê é um SRE sênior da Aegis responsável por planejar a migração do Forge. Com base no diagnóstico abaixo, proponha as etapas da migração.\r\n\r\n## Diagnóstico do Forge\r\n\r\n```\r\n{{diagnostico_forge}}\r\n```\r\n\r\n## Instruções\r\n\r\nCom base no diagnóstico, proponha uma sequência de etapas para migrar o Forge de batch para event-driven. Cada etapa deve ser:\r\n\r\n1. **Independente** — pode ser executada e validada isoladamente\r\n2. **Reversível** — tem um plano de rollback claro\r\n3. **Incremental** — entrega valor antes da próxima etapa\r\n\r\n### Estrutura de cada etapa\r\n\r\nPara cada etapa, descreva:\r\n\r\n- **Nome**: título curto da etapa\r\n- **O que muda**: descrição da mudança\r\n- **Validação**: como saber se a etapa funcionou\r\n- **Rollback**: como voltar atrás se algo der errado\r\n- **Impacto nos dependentes**: o que Sentinel, Cerebro e billing precisam saber\r\n- **Duração estimada**: dias ou sprints\r\n\r\n### Critérios\r\n\r\n- A primeira etapa deve ser a de **menor risco** e **maior valor**\r\n- Nenhuma etapa pode depender de uma etapa futura para ser revertida\r\n- O Sentinel (alerting em tempo real) não pode ser impactado negativamente em nenhuma etapa\r\n\r\n## Formato de saída\r\n\r\n```\r\n## Etapas da Migração\r\n\r\n### Etapa 1: <nome>\r\n- **O que muda**: <descrição>\r\n- **Validação**: <critério>\r\n- **Rollback**: <plano>\r\n- **Impacto**: <dependentes afetados>\r\n- **Duração**: <estimativa>\r\n\r\n### Etapa 2: <nome>\r\n...\r\n```\r\n```\r\n\r\n---",
+        "label": "devops\\migracao-forge\\02-Etapas_migracao\\prompt.md: ---\r\nnome: \"Etapas da Migração do Forge\"\r\ndescrica...",
+        "id": "430ee34fa9b48973a28a2818a7fea51399ea39b21d15a5f65ec6265efaa911a5",
+        "provider": "openai:gpt-4o-mini",
+        "metrics": {
+          "score": 4,
+          "testPassCount": 1,
+          "testFailCount": 0,
+          "testErrorCount": 0,
+          "assertPassCount": 1,
+          "assertFailCount": 0,
+          "totalLatencyMs": 25341,
+          "tokenUsage": {
+            "prompt": 610,
+            "completion": 861,
+            "cached": 0,
+            "total": 1471,
+            "numRequests": 1,
+            "completionDetails": {
+              "reasoning": 0,
+              "acceptedPrediction": 0,
+              "rejectedPrediction": 0,
+              "cacheReadInputTokens": 0,
+              "cacheCreationInputTokens": 0
+            },
+            "assertions": {
+              "total": 1475,
+              "prompt": 1213,
+              "completion": 262,
+              "cached": 0,
+              "numRequests": 0,
+              "completionDetails": {
+                "reasoning": 0,
+                "acceptedPrediction": 0,
+                "rejectedPrediction": 0,
+                "cacheReadInputTokens": 0,
+                "cacheCreationInputTokens": 0
+              }
+            }
+          },
+          "namedScores": {},
+          "namedScoresCount": {},
+          "namedScoreWeights": {},
+          "cost": 0.0006081
+        }
+      }
+    ],
+    "results": [
+      {
+        "cost": 0.0006081,
+        "gradingResult": {
+          "pass": true,
+          "score": 4,
+          "reason": "All assertions passed",
+          "namedScores": {},
+          "tokensUsed": {
+            "total": 1475,
+            "prompt": 1213,
+            "completion": 262,
+            "cached": 0,
+            "numRequests": 1
+          },
+          "componentResults": [
+            {
+              "assertion": {
+                "type": "llm-rubric",
+                "value": "Avalie as etapas propostas nos 2 critérios abaixo (0-2 cada, total 0-4):\n\n## Critério 1 — Progressividade (0-2)\nAs etapas são incrementais e reversíveis (nada de big-bang)?\nNota 0: Propõe migração única.\nNota 1: Etapas existem mas não são reversíveis.\nNota 2: Etapas incrementais com rollback explícito.\n\n## Critério 2 — Cobertura de dependências (0-2)\nConsidera os dependentes (Sentinel, Cerebro, billing) durante a transição?\nNota 0: Ignora dependentes.\nNota 1: Menciona mas não detalha.\nNota 2: Dependentes considerados em cada etapa.\n\nCorte: total >= 3. Se total < 3, REPROVADO.\n"
+              },
+              "pass": true,
+              "score": 4,
+              "reason": "Critério 1: as etapas são claramente incrementais, migram de Relay para microserviços e só depois desativam o batch, com rollback explícito em todas as etapas (2/2). Critério 2: Sentinel, Cerebro e billing são considerados na seção de impacto de cada etapa, incluindo quando são informados, monitorados ou não impactados diretamente (2/2). Total: 4/4, acima do corte de 3.",
+              "tokensUsed": {
+                "total": 1475,
+                "prompt": 1213,
+                "completion": 262,
+                "cached": 0,
+                "numRequests": 1,
+                "completionDetails": {
+                  "reasoning": 144,
+                  "acceptedPrediction": 0,
+                  "rejectedPrediction": 0
+                }
+              },
+              "metadata": {
+                "http": {
+                  "status": 200,
+                  "statusText": "OK",
+                  "headers": {
+                    "access-control-expose-headers": "X-Request-ID,CF-Ray,CF-Ray",
+                    "alt-svc": "h3=\":443\"; ma=86400",
+                    "cf-cache-status": "[REDACTED]",
+                    "cf-ray": "[REDACTED]",
+                    "connection": "keep-alive",
+                    "content-type": "application/json",
+                    "date": "Thu, 25 Jun 2026 22:06:44 GMT",
+                    "openai-organization": "[REDACTED]",
+                    "openai-processing-ms": "5638",
+                    "openai-project": "[REDACTED]",
+                    "openai-version": "[REDACTED]",
+                    "server": "cloudflare",
+                    "set-cookie": "[REDACTED]",
+                    "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+                    "transfer-encoding": "chunked",
+                    "x-content-type-options": "nosniff",
+                    "x-openai-proxy-wasm": "[REDACTED]",
+                    "x-ratelimit-limit-requests": "[REDACTED]",
+                    "x-ratelimit-limit-tokens": "[REDACTED]",
+                    "x-ratelimit-remaining-requests": "[REDACTED]",
+                    "x-ratelimit-remaining-tokens": "[REDACTED]",
+                    "x-ratelimit-reset-requests": "[REDACTED]",
+                    "x-ratelimit-reset-tokens": "[REDACTED]",
+                    "x-request-id": "[REDACTED]"
+                  }
+                },
+                "renderedGradingPrompt": "[{\"role\":\"system\",\"content\":\"You are grading output according to a user-specified rubric. If the statement in the rubric is true, then the output passes the test. You respond with a JSON object with this structure: {reason: string, pass: boolean, score: number}\\n\\nExamples:\\n\\n<Output>Hello world</Output>\\n<Rubric>Content contains a greeting</Rubric>\\n{\\\"reason\\\": \\\"the content contains the word 'Hello'\\\", \\\"pass\\\": true, \\\"score\\\": 1.0}\\n\\n<Output>Avast ye swabs, repel the invaders!</Output>\\n<Rubric>Does not speak like a pirate</Rubric>\\n{\\\"reason\\\": \\\"'avast ye' is a common pirate term\\\", \\\"pass\\\": false, \\\"score\\\": 0.0}\"},{\"role\":\"user\",\"content\":\"<Output>\\n## Etapas da Migração\\n\\n### Etapa 1: Implementação de Relay para Consumo Contínuo\\n- **O que muda**: Introdução de um Relay que permite o consumo contínuo de dados em pequenos blocos, sem alterar o pipeline batch existente. O Relay será responsável por receber eventos e processá-los em tempo real.\\n- **Validação**: Monitorar a taxa de consumo de eventos pelo Relay e garantir que não haja perda de dados. Verificar logs para confirmar que os eventos estão sendo processados corretamente.\\n- **Rollback**: Se houver problemas, desativar o Relay e retornar ao processamento batch, garantindo que os dados não processados sejam reencaminhados para o pipeline original.\\n- **Impacto**: Sentinel deve ser informado sobre a nova fonte de dados. Cerebro e billing não serão impactados nesta etapa, pois o batch ainda estará em operação.\\n- **Duração**: 5 dias\\n\\n### Etapa 2: Processamento de Eventos em Tempo Real\\n- **O que muda**: Implementação de um microserviço que consome eventos do Relay e realiza o processamento em tempo real, substituindo uma das etapas do pipeline batch (a mais longa, de 40min).\\n- **Validação**: Comparar os resultados do processamento em tempo real com os resultados do batch para garantir que os dados estão corretos e consistentes.\\n- **Rollback**: Se a validação falhar, o microserviço pode ser desativado e o processamento pode ser revertido para o pipeline batch, garantindo que os dados sejam processados na próxima execução.\\n- **Impacto**: Sentinel deve ser atualizado para monitorar o novo microserviço. Cerebro e billing devem ser informados sobre a nova fonte de dados, mas não devem ser impactados diretamente.\\n- **Duração**: 7 dias\\n\\n### Etapa 3: Substituição de Etapas do Pipeline Batch\\n- **O que muda**: Gradualmente substituir etapas do pipeline batch por microserviços que consomem eventos do Relay, começando pelas etapas menos críticas.\\n- **Validação**: Monitorar a performance e a precisão dos dados processados pelos novos microserviços em comparação com o batch. Realizar testes A/B para garantir que os resultados sejam equivalentes.\\n- **Rollback**: Se um microserviço falhar, a etapa correspondente do pipeline batch pode ser reativada, garantindo que o processamento continue sem interrupções.\\n- **Impacto**: Sentinel deve ser ajustado para incluir novos microserviços. Cerebro e billing devem ser informados sobre as mudanças nas etapas de processamento.\\n- **Duração**: 10 dias\\n\\n### Etapa 4: Desativação do Pipeline Batch\\n- **O que muda**: Após a validação de que todos os microserviços estão funcionando corretamente e substituindo as etapas do batch, o pipeline batch será desativado.\\n- **Validação**: Monitorar o sistema para garantir que todos os dados estão sendo processados corretamente pelos microserviços e que não há perda de dados.\\n- **Rollback**: Se houver problemas significativos, o pipeline batch pode ser reativado temporariamente enquanto se investiga a causa do problema.\\n- **Impacto**: Sentinel, Cerebro e billing devem ser informados sobre a desativação do batch e a transição completa para o processamento em tempo real.\\n- **Duração**: 3 dias\\n\\n### Etapa 5: Otimização e Monitoramento Contínuo\\n- **O que muda**: Implementação de melhorias e otimizações nos microserviços, além de um sistema de monitoramento contínuo para garantir a saúde do sistema.\\n- **Validação**: Estabelecer KPIs para monitorar a performance dos microserviços e garantir que estão atendendo aos requisitos de negócio.\\n- **Rollback**: Se as otimizações não funcionarem como esperado, reverter as alterações e restaurar a versão anterior dos microserviços.\\n- **Impacto**: Todos os dependentes devem ser informados sobre as otimizações e como elas podem impactar o desempenho e a entrega de dados.\\n- **Duração**: 5 dias\\n</Output>\\n<Rubric>\\nAvalie as etapas propostas nos 2 critérios abaixo (0-2 cada, total 0-4):\\n\\n## Critério 1 — Progressividade (0-2)\\nAs etapas são incrementais e reversíveis (nada de big-bang)?\\nNota 0: Propõe migração única.\\nNota 1: Etapas existem mas não são reversíveis.\\nNota 2: Etapas incrementais com rollback explícito.\\n\\n## Critério 2 — Cobertura de dependências (0-2)\\nConsidera os dependentes (Sentinel, Cerebro, billing) durante a transição?\\nNota 0: Ignora dependentes.\\nNota 1: Menciona mas não detalha.\\nNota 2: Dependentes considerados em cada etapa.\\n\\nCorte: total >= 3. Se total < 3, REPROVADO.\\n\\n</Rubric>\"}]"
+              }
+            }
+          ]
+        },
+        "id": "a34dc7c4-ecb9-40e8-91f0-c0af27fd4256",
+        "latencyMs": 25341,
+        "namedScores": {},
+        "prompt": {
+          "raw": "---\r\nnome: \"Etapas da Migração do Forge\"\r\ndescricao: \"A partir do diagnóstico do Forge, propõe etapas ordenadas de migração de batch para event-driven, cada uma com critério de rollback.\"\r\nversao: \"1.0.0\"\r\ntags:\r\n  - migracao\r\n  - forge\r\n  - etapas\r\n  - planejamento\r\n  - aegis\r\ninputs:\r\n  - nome: diagnostico_forge\r\n    descricao: \"Saída do prompt de diagnóstico com gargalos, riscos, dependências e critérios de sucesso\"\r\n---\r\n\r\n# Prompt: Etapas da Migração do Forge (Aegis)\r\n\r\nVocê é um SRE sênior da Aegis responsável por planejar a migração do Forge. Com base no diagnóstico abaixo, proponha as etapas da migração.\r\n\r\n## Diagnóstico do Forge\r\n\r\n```\r\nDiagnóstico do Forge:\n- Gargalo principal: pipeline batch de 60min com 14 etapas encadeadas em Spark (~40min)\n- Ponto frágil: falha em lote acumula o dobro no próximo\n- Dependentes críticos: Sentinel (agregados), Cerebro (indexação), billing (relatórios madrugada)\n- Objetivo da migração: consumir do Relay continuamente em pequenos blocos\n- Restrição: nada de big-bang, migração em passos reversíveis\r\n```\r\n\r\n## Instruções\r\n\r\nCom base no diagnóstico, proponha uma sequência de etapas para migrar o Forge de batch para event-driven. Cada etapa deve ser:\r\n\r\n1. **Independente** — pode ser executada e validada isoladamente\r\n2. **Reversível** — tem um plano de rollback claro\r\n3. **Incremental** — entrega valor antes da próxima etapa\r\n\r\n### Estrutura de cada etapa\r\n\r\nPara cada etapa, descreva:\r\n\r\n- **Nome**: título curto da etapa\r\n- **O que muda**: descrição da mudança\r\n- **Validação**: como saber se a etapa funcionou\r\n- **Rollback**: como voltar atrás se algo der errado\r\n- **Impacto nos dependentes**: o que Sentinel, Cerebro e billing precisam saber\r\n- **Duração estimada**: dias ou sprints\r\n\r\n### Critérios\r\n\r\n- A primeira etapa deve ser a de **menor risco** e **maior valor**\r\n- Nenhuma etapa pode depender de uma etapa futura para ser revertida\r\n- O Sentinel (alerting em tempo real) não pode ser impactado negativamente em nenhuma etapa\r\n\r\n## Formato de saída\r\n\r\n```\r\n## Etapas da Migração\r\n\r\n### Etapa 1: <nome>\r\n- **O que muda**: <descrição>\r\n- **Validação**: <critério>\r\n- **Rollback**: <plano>\r\n- **Impacto**: <dependentes afetados>\r\n- **Duração**: <estimativa>\r\n\r\n### Etapa 2: <nome>\r\n...\r\n```\r\n```\r\n\r\n---",
+          "label": "devops\\migracao-forge\\02-Etapas_migracao\\prompt.md: ---\r\nnome: \"Etapas da Migração do Forge\"\r\ndescrica...",
+          "config": {}
+        },
+        "promptId": "430ee34fa9b48973a28a2818a7fea51399ea39b21d15a5f65ec6265efaa911a5",
+        "promptIdx": 0,
+        "provider": {
+          "id": "openai:gpt-4o-mini",
+          "label": ""
+        },
+        "response": {
+          "output": "## Etapas da Migração\n\n### Etapa 1: Implementação de Relay para Consumo Contínuo\n- **O que muda**: Introdução de um Relay que permite o consumo contínuo de dados em pequenos blocos, sem alterar o pipeline batch existente. O Relay será responsável por receber eventos e processá-los em tempo real.\n- **Validação**: Monitorar a taxa de consumo de eventos pelo Relay e garantir que não haja perda de dados. Verificar logs para confirmar que os eventos estão sendo processados corretamente.\n- **Rollback**: Se houver problemas, desativar o Relay e retornar ao processamento batch, garantindo que os dados não processados sejam reencaminhados para o pipeline original.\n- **Impacto**: Sentinel deve ser informado sobre a nova fonte de dados. Cerebro e billing não serão impactados nesta etapa, pois o batch ainda estará em operação.\n- **Duração**: 5 dias\n\n### Etapa 2: Processamento de Eventos em Tempo Real\n- **O que muda**: Implementação de um microserviço que consome eventos do Relay e realiza o processamento em tempo real, substituindo uma das etapas do pipeline batch (a mais longa, de 40min).\n- **Validação**: Comparar os resultados do processamento em tempo real com os resultados do batch para garantir que os dados estão corretos e consistentes.\n- **Rollback**: Se a validação falhar, o microserviço pode ser desativado e o processamento pode ser revertido para o pipeline batch, garantindo que os dados sejam processados na próxima execução.\n- **Impacto**: Sentinel deve ser atualizado para monitorar o novo microserviço. Cerebro e billing devem ser informados sobre a nova fonte de dados, mas não devem ser impactados diretamente.\n- **Duração**: 7 dias\n\n### Etapa 3: Substituição de Etapas do Pipeline Batch\n- **O que muda**: Gradualmente substituir etapas do pipeline batch por microserviços que consomem eventos do Relay, começando pelas etapas menos críticas.\n- **Validação**: Monitorar a performance e a precisão dos dados processados pelos novos microserviços em comparação com o batch. Realizar testes A/B para garantir que os resultados sejam equivalentes.\n- **Rollback**: Se um microserviço falhar, a etapa correspondente do pipeline batch pode ser reativada, garantindo que o processamento continue sem interrupções.\n- **Impacto**: Sentinel deve ser ajustado para incluir novos microserviços. Cerebro e billing devem ser informados sobre as mudanças nas etapas de processamento.\n- **Duração**: 10 dias\n\n### Etapa 4: Desativação do Pipeline Batch\n- **O que muda**: Após a validação de que todos os microserviços estão funcionando corretamente e substituindo as etapas do batch, o pipeline batch será desativado.\n- **Validação**: Monitorar o sistema para garantir que todos os dados estão sendo processados corretamente pelos microserviços e que não há perda de dados.\n- **Rollback**: Se houver problemas significativos, o pipeline batch pode ser reativado temporariamente enquanto se investiga a causa do problema.\n- **Impacto**: Sentinel, Cerebro e billing devem ser informados sobre a desativação do batch e a transição completa para o processamento em tempo real.\n- **Duração**: 3 dias\n\n### Etapa 5: Otimização e Monitoramento Contínuo\n- **O que muda**: Implementação de melhorias e otimizações nos microserviços, além de um sistema de monitoramento contínuo para garantir a saúde do sistema.\n- **Validação**: Estabelecer KPIs para monitorar a performance dos microserviços e garantir que estão atendendo aos requisitos de negócio.\n- **Rollback**: Se as otimizações não funcionarem como esperado, reverter as alterações e restaurar a versão anterior dos microserviços.\n- **Impacto**: Todos os dependentes devem ser informados sobre as otimizações e como elas podem impactar o desempenho e a entrega de dados.\n- **Duração**: 5 dias",
+          "tokenUsage": {
+            "total": 1471,
+            "prompt": 610,
+            "completion": 861,
+            "numRequests": 1,
+            "completionDetails": {
+              "reasoning": 0,
+              "acceptedPrediction": 0,
+              "rejectedPrediction": 0
+            }
+          },
+          "cached": false,
+          "latencyMs": 25341,
+          "finishReason": "stop",
+          "cost": 0.0006081,
+          "guardrails": {
+            "flagged": false
+          },
+          "metadata": {
+            "http": {
+              "status": 200,
+              "statusText": "OK",
+              "headers": {
+                "access-control-expose-headers": "X-Request-ID,CF-Ray,CF-Ray",
+                "alt-svc": "h3=\":443\"; ma=86400",
+                "cf-cache-status": "[REDACTED]",
+                "cf-ray": "[REDACTED]",
+                "connection": "keep-alive",
+                "content-type": "application/json",
+                "date": "Thu, 25 Jun 2026 22:06:38 GMT",
+                "openai-organization": "[REDACTED]",
+                "openai-processing-ms": "25122",
+                "openai-project": "[REDACTED]",
+                "openai-version": "[REDACTED]",
+                "server": "cloudflare",
+                "set-cookie": "[REDACTED]",
+                "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+                "transfer-encoding": "chunked",
+                "x-content-type-options": "nosniff",
+                "x-openai-proxy-wasm": "[REDACTED]",
+                "x-ratelimit-limit-requests": "[REDACTED]",
+                "x-ratelimit-limit-tokens": "[REDACTED]",
+                "x-ratelimit-remaining-requests": "[REDACTED]",
+                "x-ratelimit-remaining-tokens": "[REDACTED]",
+                "x-ratelimit-reset-requests": "[REDACTED]",
+                "x-ratelimit-reset-tokens": "[REDACTED]",
+                "x-request-id": "[REDACTED]"
+              }
+            }
+          }
+        },
+        "score": 4,
+        "success": true,
+        "testCase": {
+          "description": "Elo 2 — Etapas da migração (incremental e reversível)",
+          "vars": {
+            "diagnostico_forge": "Diagnóstico do Forge:\n- Gargalo principal: pipeline batch de 60min com 14 etapas encadeadas em Spark (~40min)\n- Ponto frágil: falha em lote acumula o dobro no próximo\n- Dependentes críticos: Sentinel (agregados), Cerebro (indexação), billing (relatórios madrugada)\n- Objetivo da migração: consumir do Relay continuamente em pequenos blocos\n- Restrição: nada de big-bang, migração em passos reversíveis\n"
+          },
+          "assert": [
+            {
+              "type": "llm-rubric",
+              "value": "Avalie as etapas propostas nos 2 critérios abaixo (0-2 cada, total 0-4):\n\n## Critério 1 — Progressividade (0-2)\nAs etapas são incrementais e reversíveis (nada de big-bang)?\nNota 0: Propõe migração única.\nNota 1: Etapas existem mas não são reversíveis.\nNota 2: Etapas incrementais com rollback explícito.\n\n## Critério 2 — Cobertura de dependências (0-2)\nConsidera os dependentes (Sentinel, Cerebro, billing) durante a transição?\nNota 0: Ignora dependentes.\nNota 1: Menciona mas não detalha.\nNota 2: Dependentes considerados em cada etapa.\n\nCorte: total >= 3. Se total < 3, REPROVADO.\n"
+            }
+          ],
+          "options": {},
+          "metadata": {}
+        },
+        "testIdx": 0,
+        "tokenUsage": {
+          "prompt": 610,
+          "completion": 861,
+          "cached": 0,
+          "total": 1471,
+          "numRequests": 1,
+          "completionDetails": {
+            "reasoning": 0,
+            "acceptedPrediction": 0,
+            "rejectedPrediction": 0,
+            "cacheReadInputTokens": 0,
+            "cacheCreationInputTokens": 0
+          },
+          "assertions": {
+            "total": 1475,
+            "prompt": 1213,
+            "completion": 262,
+            "cached": 0,
+            "numRequests": 1,
+            "completionDetails": {
+              "reasoning": 0,
+              "acceptedPrediction": 0,
+              "rejectedPrediction": 0,
+              "cacheReadInputTokens": 0,
+              "cacheCreationInputTokens": 0
+            }
+          }
+        },
+        "vars": {
+          "diagnostico_forge": "Diagnóstico do Forge:\n- Gargalo principal: pipeline batch de 60min com 14 etapas encadeadas em Spark (~40min)\n- Ponto frágil: falha em lote acumula o dobro no próximo\n- Dependentes críticos: Sentinel (agregados), Cerebro (indexação), billing (relatórios madrugada)\n- Objetivo da migração: consumir do Relay continuamente em pequenos blocos\n- Restrição: nada de big-bang, migração em passos reversíveis\n"
+        },
+        "metadata": {
+          "http": {
+            "status": 200,
+            "statusText": "OK",
+            "headers": {
+              "access-control-expose-headers": "X-Request-ID,CF-Ray,CF-Ray",
+              "alt-svc": "h3=\":443\"; ma=86400",
+              "cf-cache-status": "[REDACTED]",
+              "cf-ray": "[REDACTED]",
+              "connection": "keep-alive",
+              "content-type": "application/json",
+              "date": "Thu, 25 Jun 2026 22:06:38 GMT",
+              "openai-organization": "[REDACTED]",
+              "openai-processing-ms": "25122",
+              "openai-project": "[REDACTED]",
+              "openai-version": "[REDACTED]",
+              "server": "cloudflare",
+              "set-cookie": "[REDACTED]",
+              "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+              "transfer-encoding": "chunked",
+              "x-content-type-options": "nosniff",
+              "x-openai-proxy-wasm": "[REDACTED]",
+              "x-ratelimit-limit-requests": "[REDACTED]",
+              "x-ratelimit-limit-tokens": "[REDACTED]",
+              "x-ratelimit-remaining-requests": "[REDACTED]",
+              "x-ratelimit-remaining-tokens": "[REDACTED]",
+              "x-ratelimit-reset-requests": "[REDACTED]",
+              "x-ratelimit-reset-tokens": "[REDACTED]",
+              "x-request-id": "[REDACTED]"
+            }
+          },
+          "_promptfooFileMetadata": {}
+        },
+        "failureReason": 0
+      }
+    ],
+    "stats": {
+      "successes": 1,
+      "failures": 0,
+      "errors": 0,
+      "tokenUsage": {
+        "prompt": 610,
+        "completion": 861,
+        "cached": 0,
+        "total": 1471,
+        "numRequests": 1,
+        "completionDetails": {
+          "reasoning": 0,
+          "acceptedPrediction": 0,
+          "rejectedPrediction": 0,
+          "cacheReadInputTokens": 0,
+          "cacheCreationInputTokens": 0
+        },
+        "assertions": {
+          "total": 1475,
+          "prompt": 1213,
+          "completion": 262,
+          "cached": 0,
+          "numRequests": 0,
+          "completionDetails": {
+            "reasoning": 0,
+            "acceptedPrediction": 0,
+            "rejectedPrediction": 0,
+            "cacheReadInputTokens": 0,
+            "cacheCreationInputTokens": 0
+          }
+        }
+      },
+      "durationMs": 31293,
+      "evaluationDurationMs": 31293
+    }
+  },
+  "config": {
+    "tags": {},
+    "prompts": [
+      "file://C:\\Users\\Juarez\\Documents\\00 Pos Graduação AIOPS\\02 - Engenharia de Prompt e contexto\\DESAFIOS\\Playbook-IA\\aegis-operational_prompt_library\\devops\\migracao-forge\\02-Etapas_migracao\\prompt.md"
+    ],
+    "providers": [
+      "openai:gpt-4o-mini"
+    ],
+    "tests": [
+      {
+        "description": "Elo 2 — Etapas da migração (incremental e reversível)",
+        "vars": {
+          "diagnostico_forge": "Diagnóstico do Forge:\n- Gargalo principal: pipeline batch de 60min com 14 etapas encadeadas em Spark (~40min)\n- Ponto frágil: falha em lote acumula o dobro no próximo\n- Dependentes críticos: Sentinel (agregados), Cerebro (indexação), billing (relatórios madrugada)\n- Objetivo da migração: consumir do Relay continuamente em pequenos blocos\n- Restrição: nada de big-bang, migração em passos reversíveis\n"
+        },
+        "assert": [
+          {
+            "type": "llm-rubric",
+            "value": "Avalie as etapas propostas nos 2 critérios abaixo (0-2 cada, total 0-4):\n\n## Critério 1 — Progressividade (0-2)\nAs etapas são incrementais e reversíveis (nada de big-bang)?\nNota 0: Propõe migração única.\nNota 1: Etapas existem mas não são reversíveis.\nNota 2: Etapas incrementais com rollback explícito.\n\n## Critério 2 — Cobertura de dependências (0-2)\nConsidera os dependentes (Sentinel, Cerebro, billing) durante a transição?\nNota 0: Ignora dependentes.\nNota 1: Menciona mas não detalha.\nNota 2: Dependentes considerados em cada etapa.\n\nCorte: total >= 3. Se total < 3, REPROVADO.\n"
+          }
+        ]
+      }
+    ],
+    "env": {},
+    "outputPath": [
+      "resultados/migracao-forge-02.json"
+    ],
+    "extensions": [],
+    "metadata": {},
+    "evaluateOptions": {}
+  },
+  "shareableUrl": null,
+  "metadata": {
+    "promptfooVersion": "0.121.17",
+    "nodeVersion": "v24.11.1",
+    "platform": "win32",
+    "arch": "x64",
+    "exportedAt": "2026-06-25T22:06:44.460Z",
+    "evaluationCreatedAt": "2026-06-25T22:06:13.065Z",
+    "author": "profjuarez2022@gmail.com"
+  },
+  "vars": [
+    "diagnostico_forge"
+  ],
+  "runtimeOptions": {
+    "eventSource": "cli",
+    "showProgressBar": true,
+    "repeat": 1,
+    "maxConcurrency": 4,
+    "cache": false
+  }
+}
